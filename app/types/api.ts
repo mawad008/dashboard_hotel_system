@@ -751,7 +751,7 @@ export interface Review {
   /** Staff listing only. */
   guest?: { id: number | null, name: string | null } | null
   /** Staff listing only. */
-  hotel?: { id: number | null, name: string | null } | null
+  hotel?: { id: number | null, name: string | null, name_i18n?: LocalizedMap | null } | null
 }
 
 // ---- Review categories (ReviewCategoryResource) --------------------------

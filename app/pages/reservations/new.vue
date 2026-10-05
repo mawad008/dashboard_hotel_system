@@ -6,6 +6,7 @@ import { ApiError } from '~/utils/apiError'
 definePageMeta({ permission: 'reservations.manage' })
 
 const { t } = useI18n()
+const hotelName = useHotelName()
 const app = useAppStore()
 const auth = useAuthStore()
 
@@ -257,7 +258,7 @@ function startOver() {
                 {{ t('hotelSelector.selectHotel') }}
               </option>
               <option v-for="h in auth.assignedHotels" :key="h.id" :value="h.id">
-                {{ h.name }}
+                {{ hotelName(h) }}
               </option>
             </select>
           </FormField>

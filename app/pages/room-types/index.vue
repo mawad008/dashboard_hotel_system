@@ -8,6 +8,7 @@ import { ApiError } from "~/utils/apiError";
 definePageMeta({ permission: "inventory.view" });
 
 const { t, locale } = useI18n();
+const hotelName = useHotelName();
 const { can } = useCan();
 const app = useAppStore();
 const hotelCtx = useHotelContextStore();
@@ -398,7 +399,7 @@ async function toggleActive(rt: RoomType) {
       :subtitle="
         hotelCtx.currentHotel
           ? t('roomTypes.subtitle', {
-              hotel: hotelCtx.currentHotel.name,
+              hotel: hotelName(hotelCtx.currentHotel),
             })
           : ''
       "

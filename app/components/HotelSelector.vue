@@ -3,11 +3,12 @@ import { ALL_HOTELS } from '~/stores/hotelContext'
 
 const hotelCtx = useHotelContextStore()
 const { t } = useI18n()
+const hotelName = useHotelName()
 
 const label = computed(() => {
   if (hotelCtx.currentScope == null) return t('hotelSelector.selectHotel')
   if (hotelCtx.isAllHotels) return t('hotelSelector.allHotels')
-  return hotelCtx.currentHotel?.name ?? t('hotelSelector.selectHotel')
+  return hotelName(hotelCtx.currentHotel) || t('hotelSelector.selectHotel')
 })
 </script>
 
@@ -41,7 +42,7 @@ const label = computed(() => {
       @click="hotelCtx.setScope(hotel.id)"
     >
       <KtIcon name="geolocation" />
-      <span class="truncate">{{ hotel.name }}</span>
+      <span class="truncate">{{ hotelName(hotel) }}</span>
     </button>
   </AppDropdown>
 </template>

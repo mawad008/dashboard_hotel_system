@@ -5,6 +5,7 @@ import { ApiError } from "~/utils/apiError";
 definePageMeta({ permission: "hotels.view" });
 
 const { t, locale } = useI18n();
+const hotelName = useHotelName();
 const route = useRoute();
 const router = useRouter();
 const { can } = useCan();
@@ -292,7 +293,7 @@ const modules = computed(() => {
           <img
             v-if="hotelData.cover?.url"
             :src="hotelData.cover.url"
-            :alt="hotelData.name"
+            :alt="hotelName(hotelData)"
             class="h-full w-full object-cover"
           />
 
@@ -333,8 +334,8 @@ const modules = computed(() => {
                 class="hidden h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/30 bg-white shadow-lg sm:flex sm:items-center sm:justify-center"
               >
                 <AppImage
-                  :alt="hotelData.name"
-                  :name="hotelData.name"
+                  :alt="hotelName(hotelData)"
+                  :name="hotelName(hotelData)"
                   :src="hotelData.logo?.url"
                   size="3.75rem"
                 />
@@ -345,7 +346,7 @@ const modules = computed(() => {
                   <h1
                     class="truncate text-2xl font-bold tracking-tight sm:text-3xl"
                   >
-                    {{ hotelData.name }}
+                    {{ hotelName(hotelData) }}
                   </h1>
 
                   <div
@@ -550,7 +551,7 @@ const modules = computed(() => {
               >
                 <img
                   :src="media.url"
-                  :alt="`${hotelData.name} ${index + 1}`"
+                  :alt="`${hotelName(hotelData)} ${index + 1}`"
                   class="h-full min-h-32 w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
@@ -593,8 +594,8 @@ const modules = computed(() => {
                   class="flex h-28 items-center justify-center rounded-xl border border-border bg-secondary/30"
                 >
                   <AppImage
-                    :alt="hotelData.name"
-                    :name="hotelData.name"
+                    :alt="hotelName(hotelData)"
+                    :name="hotelName(hotelData)"
                     :src="hotelData.logo?.url"
                     shape="square"
                     size="5.5rem"
@@ -615,7 +616,7 @@ const modules = computed(() => {
                   <img
                     v-if="hotelData.cover?.url"
                     :src="hotelData.cover.url"
-                    :alt="hotelData.name"
+                    :alt="hotelName(hotelData)"
                     class="aspect-video w-full object-cover"
                   />
 
@@ -643,7 +644,7 @@ const modules = computed(() => {
                 </p>
 
                 <p class="mt-1 text-sm font-medium text-foreground">
-                  {{ metaTitle || hotelData.name }}
+                  {{ metaTitle || hotelName(hotelData) }}
                 </p>
               </div>
 

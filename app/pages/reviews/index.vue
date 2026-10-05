@@ -18,6 +18,7 @@ import { REVIEW_STATUS_TONE } from '~/utils/statusMeta'
 definePageMeta({ permission: 'reviews.view' })
 
 const { t } = useI18n()
+const hotelName = useHotelName()
 const { can } = useCan()
 const app = useAppStore()
 const hotelCtx = useHotelContextStore()
@@ -303,7 +304,7 @@ const barWidth = scoreBarWidth
             </NuxtLink>
             <span v-else class="text-muted-foreground">{{ t('common.notAvailable') }}</span>
             <p v-if="(row as Review).hotel?.name" class="text-2xs text-muted-foreground">
-              {{ (row as Review).hotel?.name }}
+              {{ hotelName((row as Review).hotel) }}
             </p>
           </template>
           <template #cell-reservation_id="{ row }">

@@ -369,12 +369,22 @@ export const problemReportsService = {
 }
 
 // ---- Reservations ---------------------------------------------------
-// GET /reservations is scoped to the caller's hotels, paginated (per_page 15
-// fixed; ?page works). There is NO status / hotel / date filter server-side
-// (audit §6 gap #1) — any filtering here is client-side over the loaded page
-// and is labelled as such in the UI.
+// GET /reservations is scoped to the caller's hotels, newest first. All
+// filters run server-side across every page; hotel_id only narrows within
+// the caller's own access. search matches the id or guest name/phone/email.
+export type ReservationListParams = {
+  page?: number
+  per_page?: number
+  search?: string
+  status?: ReservationStatus
+  hotel_id?: number
+  check_in_from?: string
+  check_in_to?: string
+}
+
 export const reservationsService = {
-  list: (page = 1) => api().withMeta<Reservation[]>('/reservations', { query: { page } }),
+  list: (params: ReservationListParams = {}) =>
+    api().withMeta<Reservation[]>('/reservations', { query: cleanQuery(params) }),
   get: (id: number) => api()<Reservation>(`/reservations/${id}`),
   create: (body: {
     room_type_id: number

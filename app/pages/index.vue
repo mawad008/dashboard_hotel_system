@@ -10,6 +10,7 @@ import { RESERVATION_STATUS_TONE } from "~/utils/reservationStateMachine";
 import { date, money } from "~/utils/format";
 
 const { t } = useI18n();
+const hotelName = useHotelName();
 const auth = useAuthStore();
 const hotelCtx = useHotelContextStore();
 const { can } = useCan();
@@ -22,11 +23,11 @@ const scopeLabel = computed(() =>
   hotelCtx.isAllHotels || hotelCtx.currentHotelId == null
     ? t("overview.scopeAll")
     : t("overview.scopeHotel", {
-        hotel: hotelCtx.currentHotel?.name ?? "",
+        hotel: hotelName(hotelCtx.currentHotel),
       }),
 );
 
-const currentHotelName = computed(() => hotelCtx.currentHotel?.name ?? "");
+const currentHotelName = computed(() => hotelName(hotelCtx.currentHotel));
 
 // ---------------------------------------------------------------------
 // Hotels
@@ -48,7 +49,7 @@ const hotelsTotal = computed(
 
 const canSeeReservations = can("reservations.view");
 
-const reservations = useResource(() => reservationsService.list(1), {
+const reservations = useResource(() => reservationsService.list({ page: 1 }), {
   immediate: canSeeReservations,
 });
 

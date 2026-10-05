@@ -7,13 +7,14 @@ import { ApiError } from '~/utils/apiError'
 definePageMeta({ permission: 'users.view' })
 
 const { t, locale } = useI18n()
+const hotelName = useHotelName()
 const { can } = useCan()
 const app = useAppStore()
 const canManage = can('users.manage')
 
 const page = ref(1)
 const list = useResource(() => usersService.list(page.value))
-const hotels = useResource(() => hotelsService.list({ page: 1 }), { immediate: canManage })
+const hotels = useResource(() => hotelsService.list({ page: 1, per_page: 100 }), { immediate: canManage })
 
 // Role is a real entity relationship — options come from the RBAC API,
 // the form submits role_id (never a typed id). The role's display name is
@@ -166,7 +167,7 @@ async function confirmDelete() {
           {{ t('hotelSelector.allHotels') }}
         </span>
         <span v-else>
-          {{ (row as StaffUser).hotels?.map(h => h.name).join(', ') || t('common.none') }}
+          {{ (row as StaffUser).hotels?.map(hotelName).join(', ') || t('common.none') }}
         </span>
       </template>
       <template #cell-is_active="{ row }">
@@ -217,7 +218,7 @@ async function confirmDelete() {
         <FormField :label="t('users.hotels')" :error="fieldErrors.hotel_ids" :hint="t('users.hotelsHint')">
           <div class="max-h-40 space-y-1 overflow-y-auto rounded-md border border-input p-2">
             <label v-for="h in hotels.data.value?.data ?? []" :key="h.id" class="flex items-center gap-2 text-2sm">
-              <input v-model="form.hotel_ids" type="checkbox" :value="h.id"> {{ h.name }}
+              <input v-model="form.hotel_ids" type="checkbox" :value="h.id"> {{ hotelName(h) }}
             </label>
           </div>
         </FormField>

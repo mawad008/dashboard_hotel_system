@@ -7,6 +7,7 @@ import { ApiError } from '~/utils/apiError'
 definePageMeta({ permission: 'services.view' })
 
 const { t } = useI18n()
+const hotelName = useHotelName()
 const { can } = useCan()
 const app = useAppStore()
 const hotelCtx = useHotelContextStore()
@@ -416,7 +417,7 @@ const currentSearch = computed(() =>
       :subtitle="
         hotelCtx.currentHotel
           ? t('services.subtitle', {
-              hotel: hotelCtx.currentHotel.name,
+              hotel: hotelName(hotelCtx.currentHotel),
             })
           : ''
       "

@@ -7,6 +7,7 @@ import type { AuditLogEntry } from '~/types/api'
 definePageMeta({ permission: 'audit.view' })
 
 const { t } = useI18n()
+const hotelName = useHotelName()
 const auth = useAuthStore()
 const hotelCtx = useHotelContextStore()
 const route = useRoute()
@@ -105,7 +106,7 @@ const detailsOpen = computed({
               {{ t('hotelSelector.allHotels') }}
             </option>
             <option v-for="h in auth.assignedHotels" :key="h.id" :value="h.id">
-              {{ h.name }}
+              {{ hotelName(h) }}
             </option>
           </select>
         </FormField>

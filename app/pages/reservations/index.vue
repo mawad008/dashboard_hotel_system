@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reservationsService } from '~/services'
+import { hotelsService, reservationsService } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
 import type { Reservation, ReservationStatus } from '~/types/api'
 import { RESERVATION_STATUSES, RESERVATION_STATUS_TONE } from '~/utils/reservationStateMachine'
@@ -12,26 +12,63 @@ const router = useRouter()
 const auth = useAuthStore()
 const { can } = useCan()
 
-const page = ref(1)
-const list = useResource(() => reservationsService.list(page.value))
+const PER_PAGE_OPTIONS = [10, 15, 20]
 
-// Client-side filters over the loaded page only — the backend list endpoint
-// has no status/hotel/date query params yet (audit §6 gap #1). Labelled.
+const page = ref(1)
+const perPage = ref(15)
 const statusFilter = ref<ReservationStatus | ''>('')
 const hotelFilter = ref<number | ''>('')
 const search = ref('')
+const checkInFrom = ref('')
+const checkInTo = ref('')
 
-const hotelName = (hotelId: number) =>
-  auth.assignedHotels.find(h => h.id === hotelId)?.name ?? `#${hotelId}`
+// All filtering is server-side, across every page.
+const list = useResource(() => reservationsService.list({
+  page: page.value,
+  per_page: perPage.value,
+  search: search.value.trim() || undefined,
+  status: statusFilter.value || undefined,
+  hotel_id: hotelFilter.value || undefined,
+  check_in_from: checkInFrom.value || undefined,
+  check_in_to: checkInTo.value || undefined,
+}))
 
-const rows = computed<Reservation[]>(() => {
-  let all = list.data.value?.data ?? []
-  if (statusFilter.value) all = all.filter(r => r.status === statusFilter.value)
-  if (hotelFilter.value) all = all.filter(r => r.hotel_id === hotelFilter.value)
-  const q = search.value.trim()
-  if (q) all = all.filter(r => String(r.id).includes(q))
-  return all
+// Hotel names + filter options. A Group Owner has no assigned hotels, so
+// load the (scoped) hotel list instead of relying on auth.assignedHotels.
+const hotels = useResource(() => hotelsService.list({ per_page: 100, sort: 'name' }))
+const hotelOptions = computed(() => hotels.data.value?.data ?? auth.assignedHotels)
+const displayHotelName = useHotelName()
+const hotelName = (hotelId: number) => {
+  const h = hotelOptions.value.find(h => h.id === hotelId)
+  return h ? displayHotelName(h) : `#${hotelId}`
+}
+
+let debounce: ReturnType<typeof setTimeout> | null = null
+watch(search, () => {
+  if (debounce) clearTimeout(debounce)
+  debounce = setTimeout(() => {
+    page.value = 1
+    list.reload()
+  }, 300)
 })
+
+watch([statusFilter, hotelFilter, checkInFrom, checkInTo, perPage], () => {
+  page.value = 1
+  list.reload()
+})
+
+const filtersActive = computed(() =>
+  search.value.trim() !== '' || !!statusFilter.value || !!hotelFilter.value
+  || !!checkInFrom.value || !!checkInTo.value,
+)
+
+function clearFilters() {
+  search.value = ''
+  statusFilter.value = ''
+  hotelFilter.value = ''
+  checkInFrom.value = ''
+  checkInTo.value = ''
+}
 
 const columns: Column[] = [
   { key: 'id', label: t('reservations.id') },
@@ -59,10 +96,6 @@ function changePage(n: number) {
       </template>
     </PageHeader>
 
-    <InfoNote class="mb-4">
-      {{ t('common.clientFilterNote') }} {{ t('common.perPageNote') }}
-    </InfoNote>
-
     <div class="mb-3 flex flex-wrap items-end gap-3">
       <div class="max-w-xs grow">
         <SearchField v-model="search" :placeholder="t('reservations.searchPlaceholder')" />
@@ -77,27 +110,39 @@ function changePage(n: number) {
           </option>
         </select>
       </FormField>
-      <FormField v-if="auth.assignedHotels.length > 1 || auth.isGroupOwner" :label="t('reservations.filterHotel')">
+      <FormField v-if="hotelOptions.length > 1" :label="t('reservations.filterHotel')">
         <select v-model="hotelFilter" class="input min-w-44">
           <option value="">
             {{ t('common.all') }}
           </option>
-          <option v-for="h in auth.assignedHotels" :key="h.id" :value="h.id">
-            {{ h.name }}
+          <option v-for="h in hotelOptions" :key="h.id" :value="h.id">
+            {{ displayHotelName(h) }}
           </option>
         </select>
       </FormField>
+      <FormField :label="`${t('reservations.checkIn')} — ${t('common.from')}`">
+        <input v-model="checkInFrom" type="date" class="input" :max="checkInTo || undefined">
+      </FormField>
+      <FormField :label="`${t('reservations.checkIn')} — ${t('common.to')}`">
+        <input v-model="checkInTo" type="date" class="input" :min="checkInFrom || undefined">
+      </FormField>
+      <button v-if="filtersActive" type="button" class="btn btn-secondary" @click="clearFilters">
+        <KtIcon name="close" /> {{ t('common.clear') }}
+      </button>
     </div>
 
     <DataTable
       :columns="columns"
-      :rows="rows"
+      :rows="list.data.value?.data ?? []"
       :loading="list.pending.value"
       :error="list.error.value"
       :meta="list.data.value?.meta ?? null"
+      :per-page-options="PER_PAGE_OPTIONS"
+      :per-page="perPage"
       clickable-rows
       @retry="list.reload"
       @page="changePage"
+      @per-page="(n: number) => (perPage = n)"
       @row-click="(row: Reservation) => router.push(`/reservations/${row.id}`)"
     >
       <template #cell-id="{ row }">

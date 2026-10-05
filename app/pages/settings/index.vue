@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t, locale, locales, setLocale } = useI18n()
+const hotelName = useHotelName()
 const auth = useAuthStore()
 const appStore = useAppStore()
 const { can } = useCan()
@@ -16,7 +17,7 @@ const facts = computed(() => [
     label: t('settings.assignedHotels'),
     value: auth.isGroupOwner
       ? t('hotelSelector.allHotels')
-      : (auth.assignedHotels.map(h => h.name).join(', ') || t('common.none')),
+      : (auth.assignedHotels.map(hotelName).join(', ') || t('common.none')),
   },
 ])
 </script>

@@ -37,6 +37,7 @@
     "information": "Information",
     "security": "Security",
     "page": "Page",
+    "perPage": "Per page",
     "of": "of",
     "showing": "Showing {from}–{to} of {total}",
     "perPageNote": "The API returns 15 rows per page.",
@@ -547,7 +548,7 @@
     "manageNote": "Reception can view the catalogue but not change pricing — the backend enforces this."
   },
   "reservations": {
-    "searchPlaceholder": "Search by reservation #",
+    "searchPlaceholder": "Search by reservation #, guest name or phone",
     "title": "Reservations",
     "subtitle": "Reservations across the hotels you can access.",
     "id": "Reservation",

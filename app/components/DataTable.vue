@@ -19,11 +19,13 @@ const props = withDefaults(
     emptyTitle?: string
     emptyBody?: string
     clickableRows?: boolean
+    perPageOptions?: number[]
+    perPage?: number
   }>(),
   { rowKey: 'id', meta: null },
 )
 
-const emit = defineEmits<{ retry: [], page: [n: number], rowClick: [row: T] }>()
+const emit = defineEmits<{ retry: [], page: [n: number], perPage: [n: number], rowClick: [row: T] }>()
 
 function cellValue(row: T, key: string): unknown {
   return (row as Record<string, unknown>)[key]
@@ -78,8 +80,17 @@ const alignClass = (a?: Column['align']) =>
           </tbody>
         </table>
       </div>
-      <div v-if="meta && (meta.last_page ?? 1) > 1" class="border-t border-border px-4 py-3">
-        <Pagination :meta="meta" @page="n => emit('page', n)" />
+      <div
+        v-if="meta && ((meta.last_page ?? 1) > 1 || perPageOptions?.length)"
+        class="border-t border-border px-4 py-3"
+      >
+        <Pagination
+          :meta="meta"
+          :per-page-options="perPageOptions"
+          :per-page="perPage"
+          @page="n => emit('page', n)"
+          @per-page="n => emit('perPage', n)"
+        />
       </div>
     </template>
   </div>

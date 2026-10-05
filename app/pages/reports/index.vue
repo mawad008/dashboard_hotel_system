@@ -6,6 +6,7 @@ import { RESERVATION_STATUS_TONE } from '~/utils/reservationStateMachine'
 
 definePageMeta({ permission: 'reports.view' })
 const { t } = useI18n()
+const hotelName = useHotelName()
 const auth = useAuthStore()
 
 type ReportKey = 'occupancy' | 'reservations' | 'revenue' | 'payments' | 'services' | 'loyalty' | 'reviews' | 'comparison'
@@ -131,7 +132,7 @@ const comparisonMax = computed(() => Math.max(1, ...(comparison.data.value?.hote
             {{ t('hotelSelector.allHotels') }}
           </option>
           <option v-for="h in auth.assignedHotels" :key="h.id" :value="h.id">
-            {{ h.name }}
+            {{ hotelName(h) }}
           </option>
         </select>
       </FormField>

@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import type { ApiMeta } from '~/types/api'
 
-const props = defineProps<{ meta: ApiMeta | null }>()
-const emit = defineEmits<{ page: [n: number] }>()
+const props = defineProps<{
+  meta: ApiMeta | null
+  // When set, a page-size picker is shown; the parent owns the value.
+  perPageOptions?: number[]
+  perPage?: number
+}>()
+const emit = defineEmits<{ page: [n: number], perPage: [n: number] }>()
 const { t } = useI18n()
 
 const current = computed(() => props.meta?.current_page ?? 1)
@@ -18,8 +23,20 @@ function go(n: number) {
 
 <template>
   <div class="flex flex-col items-center justify-between gap-3 text-sm text-muted-foreground sm:flex-row">
-    <span>{{ t('common.showing', { from, to, total }) }}</span>
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-3">
+      <span>{{ t('common.showing', { from, to, total }) }}</span>
+      <label v-if="perPageOptions?.length" class="flex items-center gap-2">
+        <span class="whitespace-nowrap">{{ t('common.perPage') }}</span>
+        <select
+          class="input w-auto py-1"
+          :value="perPage ?? meta?.per_page"
+          @change="emit('perPage', Number(($event.target as HTMLSelectElement).value))"
+        >
+          <option v-for="n in perPageOptions" :key="n" :value="n">{{ n }}</option>
+        </select>
+      </label>
+    </div>
+    <div v-if="last > 1" class="flex items-center gap-1">
       <button
         type="button"
         class="btn btn-ghost px-2 py-1"

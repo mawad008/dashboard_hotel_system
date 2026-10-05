@@ -7,6 +7,7 @@ definePageMeta({
 });
 
 const { t } = useI18n();
+const hotelName = useHotelName();
 const route = useRoute();
 const router = useRouter();
 
@@ -43,7 +44,7 @@ function onSaved(saved: Hotel) {
           <KtIcon name="right" class="shrink-0 text-[10px]" />
 
           <span class="truncate">
-            {{ hotel.data.value?.name || t("common.edit") }}
+            {{ hotelName(hotel.data.value) || t("common.edit") }}
           </span>
         </nav>
 
@@ -55,8 +56,8 @@ function onSaved(saved: Hotel) {
           >
             <AppImage
               v-if="hotel.data.value"
-              :alt="hotel.data.value.name"
-              :name="hotel.data.value.name"
+              :alt="hotelName(hotel.data.value)"
+              :name="hotelName(hotel.data.value)"
               :src="hotel.data.value.logo?.url"
               size="2.75rem"
             />
@@ -71,7 +72,7 @@ function onSaved(saved: Hotel) {
               {{
                 hotel.data.value
                   ? t("hotels.editTitleNamed", {
-                      name: hotel.data.value.name,
+                      name: hotelName(hotel.data.value),
                     })
                   : t("hotels.editTitle")
               }}
@@ -146,7 +147,7 @@ function onSaved(saved: Hotel) {
                 </h2>
 
                 <p class="truncate text-xs text-muted-foreground">
-                  {{ hotel.data.value.name }}
+                  {{ hotelName(hotel.data.value) }}
                 </p>
               </div>
             </div>
@@ -198,7 +199,7 @@ function onSaved(saved: Hotel) {
               <img
                 v-if="hotel.data.value.cover?.url"
                 :src="hotel.data.value.cover.url"
-                :alt="hotel.data.value.name"
+                :alt="hotelName(hotel.data.value)"
                 class="h-full w-full object-cover"
               />
 
@@ -217,8 +218,8 @@ function onSaved(saved: Hotel) {
                   class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border-4 border-card bg-card shadow-sm"
                 >
                   <AppImage
-                    :alt="hotel.data.value.name"
-                    :name="hotel.data.value.name"
+                    :alt="hotelName(hotel.data.value)"
+                    :name="hotelName(hotel.data.value)"
                     :src="hotel.data.value.logo?.url"
                     size="3rem"
                   />
@@ -227,7 +228,7 @@ function onSaved(saved: Hotel) {
 
               <div class="mt-3">
                 <h3 class="truncate text-sm font-semibold text-foreground">
-                  {{ hotel.data.value.name }}
+                  {{ hotelName(hotel.data.value) }}
                 </h3>
 
                 <p
@@ -298,7 +299,7 @@ function onSaved(saved: Hotel) {
                 </p>
 
                 <p class="truncate text-xs text-muted-foreground">
-                  {{ hotel.data.value.name }}
+                  {{ hotelName(hotel.data.value) }}
                 </p>
               </div>
 

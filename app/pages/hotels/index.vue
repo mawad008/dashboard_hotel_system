@@ -7,6 +7,7 @@ import { ApiError } from "~/utils/apiError";
 definePageMeta({ permission: "hotels.view" });
 
 const { t, locale } = useI18n();
+const hotelName = useHotelName();
 const router = useRouter();
 const { can } = useCan();
 const app = useAppStore();
@@ -14,6 +15,8 @@ const app = useAppStore();
 const canManage = can("hotels.manage");
 
 const page = ref(1);
+const PER_PAGE_OPTIONS = [10, 15, 20];
+const perPage = ref(10);
 const search = ref("");
 const status = ref<"all" | "active" | "inactive">("all");
 const sort = ref<"name" | "-name" | "created_at" | "-created_at">("name");
@@ -21,6 +24,7 @@ const sort = ref<"name" | "-name" | "created_at" | "-created_at">("name");
 function params() {
   return {
     page: page.value,
+    per_page: perPage.value,
     search: search.value.trim() || undefined,
     is_active:
       status.value === "all"
@@ -43,7 +47,7 @@ watch(search, () => {
   }, 300);
 });
 
-watch([status, sort], () => {
+watch([status, sort, perPage], () => {
   page.value = 1;
   list.reload();
 });
@@ -261,9 +265,12 @@ async function toggleActive(h: Hotel) {
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
         :empty-title="t('hotels.empty')"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         clickable-rows
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
         @row-click="(row: Hotel) => router.push(`/hotels/${row.id}`)"
       >
         <!-- ========================================================= -->
@@ -274,8 +281,8 @@ async function toggleActive(h: Hotel) {
           <div class="flex min-w-0 items-center gap-3.5">
             <div class="shrink-0">
               <AppImage
-                :alt="(row as Hotel).name"
-                :name="(row as Hotel).name"
+                :alt="hotelName(row as Hotel)"
+                :name="hotelName(row as Hotel)"
                 :src="(row as Hotel).logo?.url"
                 size="2.75rem"
               />
@@ -283,7 +290,7 @@ async function toggleActive(h: Hotel) {
 
             <div class="min-w-0">
               <div class="truncate text-sm font-semibold text-foreground">
-                {{ (row as Hotel).name }}
+                {{ hotelName(row as Hotel) }}
               </div>
 
               <div class="mt-0.5 truncate text-xs text-muted-foreground">
