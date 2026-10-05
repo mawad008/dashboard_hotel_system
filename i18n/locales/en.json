@@ -4,6 +4,12 @@
     "tagline": "Operations Dashboard"
   },
   "common": {
+    "management": "Management",
+    "quickActions": "Quick actions",
+    "status": "Status",
+    "filters": "Filters:",
+    "filtersApplied": "Filters applied",
+    "selectAll": "Select all",
     "loading": "Loading…",
     "retry": "Retry",
     "search": "Search",
@@ -151,6 +157,7 @@
     "needHotelBody": "This section works on one hotel at a time. Choose a hotel from the selector in the header."
   },
   "overview": {
+    "services": "Services",
     "title": "Overview",
     "welcome": "Welcome back, {name}",
     "scopeAll": "Across all hotels",
@@ -168,6 +175,8 @@
     "noHotelForInventory": "Select a single hotel to see its inventory snapshot."
   },
   "hotels": {
+    "metaTitle": "Meta title",
+    "metaDescription": "Meta description",
     "tabs": {
       "general": "General",
       "deposit": "Deposit",
@@ -410,6 +419,11 @@
     }
   },
   "facilities": {
+    "sortBy": "Sort by",
+    "sortNameAsc": "Name (A–Z)",
+    "sortNameDesc": "Name (Z–A)",
+    "sortKeyAsc": "Key (A–Z)",
+    "sortKeyDesc": "Key (Z–A)",
     "title": "Facilities",
     "subtitle": "The facility catalog hotels select from. Manage it centrally instead of typing the same facility into every hotel.",
     "nameEn": "Name (English)",
@@ -493,6 +507,8 @@
     }
   },
   "rooms": {
+    "empty": "No rooms yet.",
+    "searchPlaceholder": "Search by room number",
     "title": "Rooms & inventory",
     "subtitle": "Rooms for {hotel}.",
     "number": "Room number",
@@ -523,6 +539,8 @@
     "someUploadsFailed": "Saved, but some images failed to upload. Add them again from Edit."
   },
   "services": {
+    "empty": "Nothing here yet.",
+    "searchPlaceholder": "Search by name or description",
     "title": "Stay services",
     "subtitle": "Service catalogue for {hotel}.",
     "categories": "Categories",
@@ -1234,6 +1252,7 @@
     "status": "Status"
   },
   "countries": {
+    "activeHint": "Inactive countries stay in the system but can no longer be selected for new hotels.",
     "title": "Countries",
     "subtitle": "Global country reference data used across hotels, discovery and search.",
     "nameEn": "Name (English)",
@@ -1258,6 +1277,7 @@
     "searchPlaceholder": "Search by name or code"
   },
   "cities": {
+    "activeHint": "Inactive cities stay in the system but can no longer be selected for new hotels.",
     "title": "Cities",
     "subtitle": "Cities belong to a country and are referenced by hotels.",
     "country": "Country",
