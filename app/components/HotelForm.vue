@@ -37,6 +37,10 @@ const emit = defineEmits<{ saved: [hotel: Hotel] }>();
 
 const { t, locale } = useI18n();
 const hotelName = useHotelName();
+const { can } = useCan();
+// Regrouping / (de)activating a hotel stays hotels.manage; a hotels.update
+// editor (Hotel Manager) keeps the current values (backend-enforced).
+const canManageHotels = can("hotels.manage");
 const app = useAppStore();
 const router = useRouter();
 
@@ -725,6 +729,7 @@ onBeforeRouteLeave(() => {
           </FormField>
 
           <FormField
+            v-if="canManageHotels"
             for-id="hotel-group"
             :label="t('hotels.group')"
             :error="fieldErrors.hotel_group_id"
@@ -812,6 +817,7 @@ onBeforeRouteLeave(() => {
       </FormSection>
 
       <FormSection
+        v-if="canManageHotels"
         class="hotel-form-section"
         :title="t('hotels.sectionStatus')"
         :description="t('hotels.sectionStatusDesc')"

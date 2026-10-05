@@ -13,6 +13,8 @@ const { can } = useCan();
 const app = useAppStore();
 
 const canManage = can("hotels.manage");
+// Hotel Managers hold hotels.update: edit only (no create/(de)activate).
+const canEdit = canManage || can("hotels.update");
 
 const page = ref(1);
 const PER_PAGE_OPTIONS = [10, 15, 20];
@@ -88,7 +90,7 @@ const columns = computed<Column[]>(() => [
     key: "is_active",
     label: t("hotels.status"),
   },
-  ...(canManage
+  ...(canEdit
     ? [
         {
           key: "actions",
@@ -374,6 +376,7 @@ async function toggleActive(h: Hotel) {
             <!-- Activate / Deactivate -->
 
             <button
+              v-if="canManage"
               type="button"
               class="btn btn-ghost px-2.5 py-2"
               :disabled="toggling === (row as Hotel).id"

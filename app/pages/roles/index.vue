@@ -568,7 +568,7 @@ async function confirmDelete() {
                 :title="t('common.edit')"
                 @click="openEdit(role)"
               >
-                <KtIcon name="edit" />
+                <KtIcon name="pencil" />
               </button>
 
               <button
@@ -633,15 +633,8 @@ async function confirmDelete() {
                 </span>
               </div>
 
-              <p
-                v-if="role.slug === 'guest'"
-                class="rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground"
-              >
-                {{ t("roles.guestExplanation") }}
-              </p>
-
               <div
-                v-else-if="role.permissions?.length"
+                v-if="role.permissions?.length"
                 class="flex flex-wrap gap-1.5"
               >
                 <span

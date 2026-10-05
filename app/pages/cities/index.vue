@@ -204,7 +204,7 @@ async function confirmDelete() {
 
         <!-- Country -->
 
-        <FormField :label="t('cities.filterCountry')" class="w-full sm:w-auto">
+        <FormField :label="t('cities.filterCountry')" class="w-full sm:w-64 shrink-0">
           <div class="w-full sm:min-w-52">
             <EntitySelect
               v-model="countryId"

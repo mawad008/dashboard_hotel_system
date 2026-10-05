@@ -4,6 +4,10 @@
     "tagline": "لوحة العمليات"
   },
   "common": {
+    "firstPage": "الصفحة الأولى",
+    "previousPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية",
+    "lastPage": "الصفحة الأخيرة",
     "management": "الإدارة",
     "quickActions": "إجراءات سريعة",
     "status": "الحالة",
@@ -811,7 +815,6 @@
     "customBadge": "دور مخصص",
     "permissionsCount": "{count} صلاحية",
     "usersCount": "{count} مستخدم",
-    "guestExplanation": "نزيل هو هوية خاصة بالنزلاء يستخدمها تطبيق الجوال. لا يملك أي صلاحيات إدارية في لوحة التحكم.",
     "selectAll": "تحديد الكل",
     "clearAll": "إلغاء تحديد الكل",
     "noPermissionsAssigned": "لا توجد صلاحيات مسندة.",

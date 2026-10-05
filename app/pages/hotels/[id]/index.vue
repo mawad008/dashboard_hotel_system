@@ -14,6 +14,7 @@ const app = useAppStore();
 const id = Number(route.params.id);
 
 const canManage = can("hotels.manage");
+const canEdit = canManage || can("hotels.update");
 const deleteOpen = ref(false);
 const deleting = ref(false);
 const canManageGroups = can("hotel-groups.manage");
@@ -264,8 +265,9 @@ const modules = computed(() => {
           {{ t("common.back") }}
         </NuxtLink>
 
-        <div v-if="canManage" class="flex items-center gap-2">
+        <div v-if="canEdit" class="flex items-center gap-2">
           <button
+            v-if="canManage"
             type="button"
             class="btn btn-destructive"
             @click="deleteOpen = true"

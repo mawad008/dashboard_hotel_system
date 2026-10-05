@@ -9,6 +9,9 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     include: ['tests/**/*.{test,spec}.ts'],
+    // `tests/ktIconGlyphs.test.ts` reads the Keenicons stylesheet as text
+    // (`?raw`); vitest otherwise stubs every CSS import to an empty string.
+    css: { include: [/keenicons\/outline\/style\.css/] },
   },
   // `tests/guestAppIcons.test.ts` reads the guest app's icon map to keep the
   // dashboard's icon previews in sync with it.

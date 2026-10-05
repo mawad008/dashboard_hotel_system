@@ -262,9 +262,10 @@ export const roomsService = {
     }),
   // The backend paginates this endpoint (15/page) — use this for the
   // Rooms list table; use `list` for pickers that need every option.
-  paginate: (hotelId: number, page = 1, roomTypeId?: number) =>
+  // Newest first; `search` matches room number server-side across all pages.
+  paginate: (hotelId: number, page = 1, roomTypeId?: number, search?: string, perPage?: number) =>
     api().withMeta<Room[]>(`/hotels/${hotelId}/rooms`, {
-      query: cleanQuery({ page, room_type_id: roomTypeId }),
+      query: cleanQuery({ page, room_type_id: roomTypeId, search, per_page: perPage }),
     }),
   get: (hotelId: number, id: number) => api()<Room>(`/hotels/${hotelId}/rooms/${id}`),
   create: (hotelId: number, body: Record<string, unknown>) =>

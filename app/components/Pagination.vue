@@ -41,18 +41,42 @@ function go(n: number) {
         type="button"
         class="btn btn-ghost px-2 py-1"
         :disabled="current <= 1"
+        :title="t('common.firstPage')"
+        :aria-label="t('common.firstPage')"
+        @click="go(1)"
+      >
+        <KtIcon name="double-left" class="rtl:rotate-180" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost px-2 py-1"
+        :disabled="current <= 1"
+        :title="t('common.previousPage')"
+        :aria-label="t('common.previousPage')"
         @click="go(current - 1)"
       >
-        <KtIcon name="left" />
+        <KtIcon name="left" class="rtl:rotate-180" />
       </button>
       <span class="px-2">{{ t('common.page') }} {{ current }} {{ t('common.of') }} {{ last }}</span>
       <button
         type="button"
         class="btn btn-ghost px-2 py-1"
         :disabled="current >= last"
+        :title="t('common.nextPage')"
+        :aria-label="t('common.nextPage')"
         @click="go(current + 1)"
       >
-        <KtIcon name="right" />
+        <KtIcon name="right" class="rtl:rotate-180" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost px-2 py-1"
+        :disabled="current >= last"
+        :title="t('common.lastPage')"
+        :aria-label="t('common.lastPage')"
+        @click="go(last)"
+      >
+        <KtIcon name="double-right" class="rtl:rotate-180" />
       </button>
     </div>
   </div>

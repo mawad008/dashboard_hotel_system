@@ -57,6 +57,9 @@ const activeIndex = ref(-1)
 const loadedOnce = ref(false)
 const root = ref<HTMLElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
+const panel = ref<HTMLElement | null>(null)
+const panelStyle = ref<Record<string, string>>({})
+const panelDir = ref<'ltr' | 'rtl'>('ltr')
 
 let seq = 0
 let debounce: ReturnType<typeof setTimeout> | null = null
@@ -130,10 +133,58 @@ watch(query, () => {
   if (props.serverSearch) scheduleLoad()
 })
 
+// The panel is teleported to <body> with fixed positioning so an ancestor
+// with `overflow: hidden` (cards, tables, scrollable modal bodies) can never
+// clip it. Its position is recomputed from the trigger on scroll / resize.
+const PANEL_MIN_WIDTH = 224
+const PANEL_GAP = 4
+const PANEL_EST_HEIGHT = 300
+
+function position() {
+  if (!root.value) return
+  const rect = root.value.getBoundingClientRect()
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const width = Math.min(Math.max(rect.width, PANEL_MIN_WIDTH), vw - 16)
+  const rtl = getComputedStyle(root.value).direction === 'rtl'
+  panelDir.value = rtl ? 'rtl' : 'ltr'
+  let left = rtl ? rect.right - width : rect.left
+  left = Math.max(8, Math.min(left, vw - width - 8))
+
+  const spaceBelow = vh - rect.bottom
+  const openUp = spaceBelow < PANEL_EST_HEIGHT && rect.top > spaceBelow
+
+  panelStyle.value = {
+    position: 'fixed',
+    left: `${left}px`,
+    width: `${width}px`,
+    zIndex: '60',
+    ...(openUp
+      ? { bottom: `${vh - rect.top + PANEL_GAP}px` }
+      : { top: `${rect.bottom + PANEL_GAP}px` }),
+  }
+}
+
+function bindPositioning(on: boolean) {
+  if (on) {
+    window.addEventListener('scroll', position, true)
+    window.addEventListener('resize', position)
+  } else {
+    window.removeEventListener('scroll', position, true)
+    window.removeEventListener('resize', position)
+  }
+}
+
 watch(open, (v) => {
   if (v && !loadedOnce.value && !loading.value) load()
-  if (v) nextTick(() => searchInput.value?.focus())
-  else query.value = ''
+  if (v) {
+    position()
+    bindPositioning(true)
+    nextTick(() => searchInput.value?.focus())
+  } else {
+    bindPositioning(false)
+    query.value = ''
+  }
 })
 
 function toggle() {
@@ -176,12 +227,15 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 function onDocClick(e: MouseEvent) {
-  if (root.value && !root.value.contains(e.target as Node)) open.value = false
+  const target = e.target as Node
+  if (root.value?.contains(target) || panel.value?.contains(target)) return
+  open.value = false
 }
 
 onMounted(() => document.addEventListener('click', onDocClick))
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocClick)
+  bindPositioning(false)
   if (debounce) clearTimeout(debounce)
 })
 
@@ -221,65 +275,70 @@ defineExpose({ reload: load })
       <KtIcon name="down" class="shrink-0 text-2xs text-muted-foreground" />
     </button>
 
-    <Transition name="dd">
-      <div
-        v-if="open"
-        class="card absolute z-40 mt-1 w-full overflow-hidden p-1 shadow-lg"
-        role="listbox"
-      >
-        <div v-if="searchable" class="p-1">
-          <input
-            ref="searchInput"
-            v-model="query"
-            type="search"
-            class="input text-2sm"
-            :placeholder="t('common.search')"
-            @keydown="onKeydown"
-          >
-        </div>
-
-        <div class="max-h-60 overflow-y-auto">
-          <div v-if="loading" class="px-2.5 py-3 text-center text-2sm text-muted-foreground">
-            <KtIcon name="loading" class="animate-spin" /> {{ t('common.loading') }}
-          </div>
-          <div v-else-if="error" class="px-2.5 py-3 text-center text-2sm">
-            <p class="text-destructive">
-              {{ error instanceof ApiError ? error.message : t('errors.genericBody') }}
-            </p>
-            <button type="button" class="btn btn-ghost mt-1 px-2 py-1 text-2xs" @click="load">
-              <KtIcon name="arrows-circle" /> {{ t('common.retry') }}
-            </button>
-          </div>
-          <div v-else-if="filteredOptions.length === 0" class="px-2.5 py-3 text-center text-2sm text-muted-foreground">
-            <slot name="empty">
-              {{ t('common.noResults') }}
-            </slot>
-          </div>
-          <ul v-else>
-            <li
-              v-for="(item, i) in filteredOptions"
-              :key="String(item[valueKey])"
-              role="option"
-              :aria-selected="String(item[valueKey]) === String(model)"
-              class="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-2sm"
-              :class="[
-                i === activeIndex ? 'bg-secondary' : 'hover:bg-secondary',
-                String(item[valueKey]) === String(model) ? 'font-semibold text-primary' : 'text-foreground',
-              ]"
-              @click="choose(item)"
-              @mouseenter="activeIndex = i"
+    <Teleport to="body">
+      <Transition name="dd">
+        <div
+          v-if="open"
+          ref="panel"
+          class="card overflow-hidden p-1 shadow-lg"
+          :style="panelStyle"
+          :dir="panelDir"
+          role="listbox"
+        >
+          <div v-if="searchable" class="p-1">
+            <input
+              ref="searchInput"
+              v-model="query"
+              type="search"
+              class="input text-2sm"
+              :placeholder="t('common.search')"
+              @keydown="onKeydown"
             >
-              <span class="min-w-0 flex-1 truncate">{{ labelOf(item) }}</span>
-              <KtIcon
-                v-if="String(item[valueKey]) === String(model)"
-                name="check"
-                class="shrink-0 text-2xs"
-              />
-            </li>
-          </ul>
+          </div>
+
+          <div class="max-h-60 overflow-y-auto">
+            <div v-if="loading" class="px-2.5 py-3 text-center text-2sm text-muted-foreground">
+              <KtIcon name="loading" class="animate-spin" /> {{ t('common.loading') }}
+            </div>
+            <div v-else-if="error" class="px-2.5 py-3 text-center text-2sm">
+              <p class="text-destructive">
+                {{ error instanceof ApiError ? error.message : t('errors.genericBody') }}
+              </p>
+              <button type="button" class="btn btn-ghost mt-1 px-2 py-1 text-2xs" @click="load">
+                <KtIcon name="arrows-circle" /> {{ t('common.retry') }}
+              </button>
+            </div>
+            <div v-else-if="filteredOptions.length === 0" class="px-2.5 py-3 text-center text-2sm text-muted-foreground">
+              <slot name="empty">
+                {{ t('common.noResults') }}
+              </slot>
+            </div>
+            <ul v-else>
+              <li
+                v-for="(item, i) in filteredOptions"
+                :key="String(item[valueKey])"
+                role="option"
+                :aria-selected="String(item[valueKey]) === String(model)"
+                class="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-2sm"
+                :class="[
+                  i === activeIndex ? 'bg-secondary' : 'hover:bg-secondary',
+                  String(item[valueKey]) === String(model) ? 'font-semibold text-primary' : 'text-foreground',
+                ]"
+                @click="choose(item)"
+                @mouseenter="activeIndex = i"
+              >
+                <span class="min-w-0 flex-1 truncate">{{ labelOf(item) }}</span>
+                <KtIcon
+                  v-if="String(item[valueKey]) === String(model)"
+                  name="check"
+                  class="shrink-0 text-2xs"
+                />
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 

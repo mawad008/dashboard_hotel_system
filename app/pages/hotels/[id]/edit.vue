@@ -3,7 +3,8 @@ import { hotelGroupsService, hotelsService } from "~/services";
 import type { Hotel } from "~/types/api";
 
 definePageMeta({
-  permission: "hotels.manage",
+  // hotels.update = Hotel Manager editing an assigned hotel.
+  permission: ["hotels.manage", "hotels.update"],
 });
 
 const { t } = useI18n();
@@ -14,7 +15,12 @@ const router = useRouter();
 const id = Number(route.params.id);
 
 const hotel = useResource(() => hotelsService.get(id));
-const groups = useResource(() => hotelGroupsService.list());
+// The group list needs hotel-groups.manage; a Hotel Manager cannot regroup
+// a hotel anyway, so HotelForm hides that field for them.
+const { can } = useCan();
+const groups = useResource(() => hotelGroupsService.list(), {
+  immediate: can("hotel-groups.manage"),
+});
 
 function onSaved(saved: Hotel) {
   router.push(`/hotels/${saved.id}`);

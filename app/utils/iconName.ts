@@ -17,6 +17,17 @@ const ICON_ALIASES: Record<string, string> = {
   spa: "drop",
   tv: "screen",
   "washing-machine": "setting",
+  // Generic UI names with no Keenicon of that exact name — without these
+  // the <i> renders an empty glyph (e.g. an icon-only button looks blank).
+  "add-circle": "plus-circle",
+  "clipboard-text": "clipboard",
+  door: "delivery-door",
+  edit: "pencil",
+  globe: "map",
+  info: "information",
+  "map-pin": "geolocation",
+  "profile-2user": "people",
+  search: "magnifier",
 };
 
 export function iconName(name: string): string {

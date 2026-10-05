@@ -4,6 +4,10 @@
     "tagline": "Operations Dashboard"
   },
   "common": {
+    "firstPage": "First page",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "lastPage": "Last page",
     "management": "Management",
     "quickActions": "Quick actions",
     "status": "Status",
@@ -843,7 +847,6 @@
     "customBadge": "Custom",
     "permissionsCount": "{count} permissions",
     "usersCount": "{count} users",
-    "guestExplanation": "Guest is a guest-facing identity used by the mobile app. It has no Dashboard staff capabilities.",
     "selectAll": "Select all",
     "clearAll": "Clear all",
     "noPermissionsAssigned": "No permissions assigned.",

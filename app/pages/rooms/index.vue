@@ -57,6 +57,9 @@ const typeName = (id: number) =>
 // ---------------------------------------------------------------------
 
 const page = ref(1);
+const search = ref("");
+const PER_PAGE_OPTIONS = [15, 50, 100];
+const perPage = ref(15);
 
 const list = useResource(
   async () => {
@@ -66,6 +69,8 @@ const list = useResource(
       hotelId.value,
       page.value,
       typeFilter.value ?? undefined,
+      search.value.trim() || undefined,
+      perPage.value,
     );
   },
   { immediate: false },
@@ -85,7 +90,7 @@ watch(
   { immediate: true },
 );
 
-watch(typeFilter, () => {
+watch([typeFilter, perPage], () => {
   if (hotelId.value != null) {
     page.value = 1;
     list.reload();
@@ -101,18 +106,26 @@ function changePage(n: number) {
 // Search
 // ---------------------------------------------------------------------
 
-const search = ref("");
+// Server-side: the list is paginated, so filtering only the loaded page
+// would hide matching rooms that live on other pages.
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
-const rows = computed<Room[]>(() => {
-  const all = list.data.value?.data ?? [];
-  const q = search.value.trim().toLowerCase();
+watch(search, () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
 
-  if (!q) {
-    return all;
-  }
-
-  return all.filter((room) => room.room_number.toLowerCase().includes(q));
+  searchDebounce = setTimeout(() => {
+    if (hotelId.value != null) {
+      page.value = 1;
+      list.reload();
+    }
+  }, 300);
 });
+
+onBeforeUnmount(() => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+});
+
+const rows = computed<Room[]>(() => list.data.value?.data ?? []);
 
 // ---------------------------------------------------------------------
 // Filters
@@ -125,6 +138,19 @@ const filtersActive = computed(
 function clearFilters() {
   search.value = "";
   typeFilter.value = null;
+}
+
+// After a create, show the unfiltered list from page 1 — the API lists
+// newest first, so the new room is the first row. Clearing active filters
+// lets their watchers do the reload.
+function showNewestRooms() {
+  page.value = 1;
+
+  if (filtersActive.value) {
+    clearFilters();
+  } else {
+    list.reload();
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -250,7 +276,12 @@ async function submitForm() {
     }
 
     formOpen.value = false;
-    list.reload();
+
+    if (editing.value) {
+      list.reload();
+    } else {
+      showNewestRooms();
+    }
   } catch (e) {
     if (e instanceof ApiError && e.kind === "validation" && e.errors) {
       fieldErrors.value = e.errors;
@@ -370,7 +401,7 @@ async function saveStatus() {
 
           <!-- Room Type -->
 
-          <FormField :label="t('rooms.filterByType')" class="w-full sm:w-auto">
+          <FormField :label="t('rooms.filterByType')" class="w-full sm:w-64 shrink-0">
             <EntitySelect
               v-model="typeFilter"
               :fetcher="fetchRoomTypes"
@@ -425,10 +456,13 @@ async function saveStatus() {
           :loading="list.pending.value"
           :error="list.error.value"
           :meta="list.data.value?.meta ?? null"
+          :per-page-options="PER_PAGE_OPTIONS"
+          :per-page="perPage"
           :empty-title="t('rooms.empty')"
           clickable-rows
           @retry="list.reload"
           @page="changePage"
+          @per-page="(n: number) => (perPage = n)"
           @row-click="(row: Room) => openEdit(row)"
         >
           <!-- ======================================================= -->
