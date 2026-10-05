@@ -55,6 +55,22 @@ watch(
 
 const dirty = computed(() => JSON.stringify(form) !== initial);
 
+// Display order is unique across the catalog (backend-enforced), so a new
+// facility starts at the next free slot instead of a likely-taken 0.
+onMounted(async () => {
+  if (isEdit.value) return;
+  try {
+    const res = await facilitiesService.list({ per_page: 100 });
+    const orders = (res.data ?? []).map((f) => f.sort_order ?? 0);
+    if (orders.length && !dirty.value) {
+      form.sort_order = Math.max(...orders) + 1;
+      initial = JSON.stringify(form);
+    }
+  } catch {
+    // Non-fatal: the admin can still type an order; the API validates it.
+  }
+});
+
 const saving = ref(false);
 
 const fieldErrors = ref<Record<string, string[]>>({});
