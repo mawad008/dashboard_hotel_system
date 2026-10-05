@@ -243,6 +243,7 @@ export interface HotelNearbyPlace {
 export interface HotelGroup {
   id: number
   name: string
+  name_i18n?: LocalizedMap | null
   slug: string
   is_active: boolean
   created_at: string

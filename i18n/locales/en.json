@@ -853,6 +853,8 @@
     "deleteConfirm": "Delete the role \"{name}\"? This cannot be undone."
   },
   "hotelGroup": {
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
     "title": "Hotel group",
     "subtitle": "Group profile and loyalty economics.",
     "profile": "Group profile",

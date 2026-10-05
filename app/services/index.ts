@@ -87,7 +87,7 @@ export const guestAppContentService = {
 export const hotelGroupsService = {
   list: () => api()<HotelGroup[]>('/hotel-groups'),
   get: (id: number) => api()<HotelGroup>(`/hotel-groups/${id}`),
-  update: (id: number, body: Partial<Pick<HotelGroup, 'name' | 'slug' | 'is_active'>>) =>
+  update: (id: number, body: Partial<Pick<HotelGroup, 'name' | 'name_i18n' | 'slug' | 'is_active'>>) =>
     api()<HotelGroup>(`/hotel-groups/${id}`, { method: 'PUT', body }),
   // Group loyalty economics — Group Owner only (loyalty.rules.manage).
   loyaltyRule: (id: number) => api()<LoyaltyRule>(`/hotel-groups/${id}/loyalty-rule`),

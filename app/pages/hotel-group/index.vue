@@ -7,6 +7,7 @@ definePageMeta({ permission: 'hotel-groups.manage' })
 
 const { t } = useI18n()
 const app = useAppStore()
+const groupName = useHotelName()
 
 const groups = useResource(() => hotelGroupsService.list())
 const selectedId = ref<number | null>(null)
@@ -20,12 +21,20 @@ const selected = computed<HotelGroup | null>(() =>
 )
 
 // --- profile ----------------------------------------------------------
-const profile = reactive({ name: '', slug: '', is_active: true })
+const profile = reactive({ name_en: '', name_ar: '', slug: '', is_active: true })
 const profileErrors = ref<Record<string, string[]>>({})
 const savingProfile = ref(false)
 
 watch(selected, (g) => {
-  if (g) Object.assign(profile, { name: g.name, slug: g.slug, is_active: g.is_active })
+  if (g) {
+    Object.assign(profile, {
+      // Groups created before bilingual names only carry `name`.
+      name_en: g.name_i18n?.en ?? g.name,
+      name_ar: g.name_i18n?.ar ?? '',
+      slug: g.slug,
+      is_active: g.is_active,
+    })
+  }
 }, { immediate: true })
 
 async function saveProfile() {
@@ -34,7 +43,7 @@ async function saveProfile() {
   profileErrors.value = {}
   try {
     await hotelGroupsService.update(selected.value.id, {
-      name: profile.name,
+      name_i18n: { en: profile.name_en.trim(), ar: profile.name_ar.trim() },
       slug: profile.slug,
       is_active: profile.is_active,
     })
@@ -107,7 +116,7 @@ async function saveRule() {
       <FormField v-if="(groups.data.value?.length ?? 0) > 1" :label="t('nav.hotelGroup')" class="mb-4 max-w-xs">
         <select v-model.number="selectedId" class="input">
           <option v-for="g in groups.data.value ?? []" :key="g.id" :value="g.id">
-            {{ g.name }}
+            {{ groupName(g) }}
           </option>
         </select>
       </FormField>
@@ -115,8 +124,11 @@ async function saveRule() {
       <div class="grid gap-6 lg:grid-cols-2">
         <DataCard :title="t('hotelGroup.profile')">
           <form class="space-y-3" novalidate @submit.prevent="saveProfile">
-            <FormField :label="t('hotelGroup.name')" :error="profileErrors.name" required>
-              <input v-model="profile.name" class="input" required>
+            <FormField :label="t('hotelGroup.nameAr')" :error="profileErrors['name_i18n.ar']" required>
+              <input v-model="profile.name_ar" class="input" dir="rtl" lang="ar" required>
+            </FormField>
+            <FormField :label="t('hotelGroup.nameEn')" :error="profileErrors['name_i18n.en'] ?? profileErrors.name" required>
+              <input v-model="profile.name_en" class="input" dir="ltr" lang="en" required>
             </FormField>
             <FormField :label="t('hotelGroup.slug')" :error="profileErrors.slug" required>
               <input v-model="profile.slug" class="input" required>

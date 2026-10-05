@@ -36,6 +36,7 @@ const props = defineProps<{
 const emit = defineEmits<{ saved: [hotel: Hotel] }>();
 
 const { t, locale } = useI18n();
+const hotelName = useHotelName();
 const app = useAppStore();
 const router = useRouter();
 
@@ -741,7 +742,7 @@ onBeforeRouteLeave(() => {
               </option>
 
               <option v-for="g in groups" :key="g.id" :value="g.id">
-                {{ g.name }}
+                {{ hotelName(g) }}
               </option>
             </select>
           </FormField>

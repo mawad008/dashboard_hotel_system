@@ -172,7 +172,7 @@ const facts = computed(() => {
     {
       label: t("hotels.group"),
       value:
-        group.data.value?.name ||
+        hotelName(group.data.value) ||
         (h.hotel_group_id ? `#${h.hotel_group_id}` : t("common.notAvailable")),
     },
     {
@@ -403,7 +403,7 @@ const modules = computed(() => {
 
             <p class="mt-1 truncate text-sm font-semibold">
               {{
-                group.data.value?.name ||
+                hotelName(group.data.value) ||
                 (hotelData.hotel_group_id
                   ? `#${hotelData.hotel_group_id}`
                   : t("common.notAvailable"))
