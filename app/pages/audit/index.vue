@@ -6,7 +6,30 @@ import type { AuditLogEntry } from '~/types/api'
 
 definePageMeta({ permission: 'audit.view' })
 
-const { t } = useI18n()
+const { t, te } = useI18n()
+
+// Action codes are `entity.verb` (e.g. `reservation.status_changed`,
+// `hotel.media.uploaded`); shown as "entity · verb" in the UI language, with
+// the raw code kept as a tooltip. Unknown codes fall back to the code.
+function actionLabel(code: string): string {
+  const i = code.lastIndexOf('.')
+  if (i < 0) return code
+  const entity = `auditPage.entities.${code.slice(0, i)}`
+  const verb = `auditPage.verbs.${code.slice(i + 1)}`
+  return te(entity) && te(verb) ? `${t(entity)} · ${t(verb)}` : code
+}
+
+// auditable_type is a PHP class name (App\Domain\…\Models\Reservation).
+function entityLabel(type: string): string {
+  const base = type.split('\\').pop() ?? type
+  const key = `auditPage.models.${base}`
+  return te(key) ? t(key) : base
+}
+
+const hotelLabel = (id: number) => {
+  const h = auth.assignedHotels.find(x => x.id === id)
+  return h ? hotelName(h) : `#${id}`
+}
 const hotelName = useHotelName()
 const auth = useAuthStore()
 const hotelCtx = useHotelContextStore()
@@ -132,17 +155,17 @@ const detailsOpen = computed({
           <span v-else class="text-muted-foreground">{{ t('auditPage.system') }}</span>
         </template>
         <template #cell-action="{ row }">
-          <code class="text-2xs">{{ (row as AuditLogEntry).action }}</code>
+          <span :title="(row as AuditLogEntry).action">{{ actionLabel((row as AuditLogEntry).action) }}</span>
         </template>
         <template #cell-entity="{ row }">
           <span v-if="(row as AuditLogEntry).auditable_type">
-            {{ (row as AuditLogEntry).auditable_type }}
+            <span :title="(row as AuditLogEntry).auditable_type!">{{ entityLabel((row as AuditLogEntry).auditable_type!) }}</span>
             <span v-if="(row as AuditLogEntry).auditable_id" class="text-muted-foreground">#{{ (row as AuditLogEntry).auditable_id }}</span>
           </span>
           <span v-else class="text-muted-foreground">{{ t('common.notAvailable') }}</span>
         </template>
         <template #cell-hotel_id="{ row }">
-          <span v-if="(row as AuditLogEntry).hotel_id">#{{ (row as AuditLogEntry).hotel_id }}</span>
+          <span v-if="(row as AuditLogEntry).hotel_id">{{ hotelLabel((row as AuditLogEntry).hotel_id!) }}</span>
           <span v-else class="text-muted-foreground">{{ t('common.notAvailable') }}</span>
         </template>
         <template #cell-metadata="{ row }">

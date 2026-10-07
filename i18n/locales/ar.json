@@ -603,6 +603,8 @@
     "extendUnavailable": "تمديد الإقامة متاح فقط أثناء تسجيل دخول النزيل."
   },
   "workspace": {
+    "decisionResult": {"auto_approved": "موافقة تلقائية", "manual_review_required": "تتطلب مراجعة يدوية", "retry_allowed": "يُسمح بإعادة المحاولة", "retry_exhausted": "استُنفدت المحاولات", "staff_approved": "وافق عليها الموظف", "staff_rejected": "رفضها الموظف"},
+    "decisionBand": {"high": "ثقة عالية", "medium": "ثقة متوسطة", "low": "ثقة منخفضة"},
     "payment": "الدفع",
     "identity": "التحقق من الهوية",
     "access": "الوصول الرقمي",
@@ -1073,6 +1075,36 @@
     "urgency_important": "مهم",
     "urgency_urgent": "عاجل"
   },
+  "staffNotifications": {
+    "title": "الإشعارات",
+    "subtitle": "الأحداث التشغيلية التي تحتاج إلى متابعتك، وإشعارات النزلاء في الفندق.",
+    "myTab": "إشعاراتي",
+    "guestsTab": "إشعارات النزلاء",
+    "markAllRead": "تحديد الكل كمقروء",
+    "viewAll": "عرض كل الإشعارات",
+    "empty": "لا توجد إشعارات جديدة.",
+    "emptyUnread": "لا توجد إشعارات غير مقروءة.",
+    "emptyHint": "ستظهر هنا الحجوزات والمدفوعات وطلبات الخدمات وتسجيلات الوصول والمغادرة الخاصة بفنادقك.",
+    "needsAttention": "يحتاج إلى متابعة",
+    "unread": "غير مقروء",
+    "bellUnread": "الإشعارات، {count} غير مقروءة",
+    "reservationRef": "الحجز #{id}",
+    "types": {
+      "booking_created": "حجز جديد",
+      "booking_cancelled": "تم إلغاء الحجز",
+      "deposit_received": "تم استلام العربون",
+      "payment_issue": "مشكلة في الدفع",
+      "identity_review_required": "مطلوب مراجعة الهوية",
+      "guest_verified": "تم التحقق من هوية النزيل",
+      "access_issued": "تم إصدار المفتاح الرقمي — تم تسجيل وصول النزيل",
+      "access_issue_failed": "تعذّر إصدار المفتاح الرقمي",
+      "checkout_completed": "تمت مغادرة النزيل",
+      "invoice_issued": "تم إصدار الفاتورة",
+      "service_requested": "طلب خدمة جديد",
+      "problem_reported": "بلاغ مشكلة جديد",
+      "review_submitted": "تقييم جديد من نزيل"
+    }
+  },
   "notificationsPage": {
     "subtitle": "قناة الإشعارات التشغيلية.",
     "type": "الإشعار",
@@ -1112,6 +1144,9 @@
     "averageRating": "متوسط التقييم"
   },
   "auditPage": {
+    "entities": {"auth": "دخول الموظفين", "checkout": "المغادرة", "city": "المدينة", "country": "الدولة", "digital_access": "مفتاح الدخول الرقمي", "facility": "المرفق", "folio_charge": "رسوم كشف الحساب", "guest-app-content": "محتوى تطبيق النزلاء", "guest.auth": "دخول النزيل", "guest.data_deletion": "حذف بيانات النزيل", "guest.otp": "رمز تحقق النزيل", "guest.preferences": "تفضيلات النزيل", "guest.profile": "ملف النزيل", "hotel": "الفندق", "hotel-group": "مجموعة الفنادق", "hotel.media": "صورة الفندق", "identity.document": "وثيقة الهوية", "identity.images": "صور الهوية", "identity_verification": "التحقق من الهوية", "invoice": "الفاتورة", "loyalty": "نقاط الولاء", "loyalty_rule": "قاعدة الولاء", "notification": "الإشعار", "payment": "الدفع", "problem_report": "بلاغ مشكلة", "reservation": "الحجز", "review": "التقييم", "review_category": "فئة التقييم", "role": "الدور", "room": "الغرفة", "room-type": "نوع الغرفة", "room_media": "صورة الغرفة", "service": "الخدمة", "service_category": "فئة الخدمة", "service_order": "طلب الخدمة", "service_review": "تقييم الخدمة", "user": "المستخدم"},
+    "verbs": {"activated": "تم التفعيل", "approved_reservation_not_ready": "تمت الموافقة (الحجز غير جاهز)", "auto_approved": "موافقة تلقائية", "cancelled": "تم الإلغاء", "completed": "اكتمل", "confirmed": "تم التأكيد", "created": "تم الإنشاء", "deactivated": "تم إيقاف التفعيل", "deleted": "تم الحذف", "document_checked": "تم فحص الوثيقة", "document_submitted": "تم رفع الوثيقة", "earned": "تم اكتساب النقاط", "expired": "انتهت الصلاحية", "expiry_extended": "تم تمديد الصلاحية", "extended": "تم التمديد", "failed": "فشل", "final_settlement_requested": "طُلبت التسوية النهائية", "fulfilled": "تم التنفيذ", "hold_cancelled": "أُلغي حجز العربون", "hold_expired": "انتهى حجز العربون", "hold_failed": "فشل حجز العربون", "hold_pending": "حجز العربون قيد الانتظار", "hold_release_failed": "فشل فك حجز العربون", "hold_release_requested": "طُلب فك حجز العربون", "hold_released": "تم فك حجز العربون", "hold_requested": "طُلب حجز العربون", "hold_succeeded": "تم حجز العربون", "hold_succeeded_after_reservation_closed": "تم حجز العربون بعد إغلاق الحجز", "image-removed": "تم حذف صورة", "image-uploaded": "تم رفع صورة", "interrupted_check_purged": "تم حذف فحص متوقف", "issue_failed": "فشل الإصدار", "issue_requested": "طُلب الإصدار", "issued": "تم الإصدار", "issued_reservation_not_ready": "تم الإصدار (الحجز غير جاهز)", "locked_out": "تم القفل", "login": "تسجيل دخول", "logout": "تسجيل خروج", "manual_review_required": "تتطلب مراجعة يدوية", "moderated": "تمت المراجعة", "purged": "تم الحذف النهائي", "redeemed": "تم استبدال النقاط", "redemption_reversed": "تم عكس الاستبدال", "reordered": "تمت إعادة الترتيب", "requested": "تم الطلب", "resent": "تمت إعادة الإرسال", "reservation_verified": "تم التحقق من الحجز", "retry_allowed": "يُسمح بإعادة المحاولة", "retry_exhausted": "استُنفدت المحاولات", "retry_requested": "طُلبت إعادة المحاولة", "revoke_requested": "طُلب الإلغاء", "revoked": "تم الإلغاء", "room_assigned": "تم تخصيص غرفة", "selfie_submitted": "تم رفع الصورة الذاتية", "sent": "تم الإرسال", "session_started": "بدأت الجلسة", "settled": "تمت التسوية", "settlement_failed": "فشلت التسوية", "settlement_pending": "التسوية قيد الانتظار", "staff_approved": "وافق عليها الموظف", "staff_rejected": "رفضها الموظف", "started": "بدأت", "status_changed": "تغيّرت الحالة", "status_updated": "تم تحديث الحالة", "submitted": "تم الإرسال", "transitioned": "تغيّرت الحالة", "updated": "تم التحديث", "uploaded": "تم الرفع", "webhook_duplicate_ignored": "تم تجاهل إشعار مكرر", "webhook_processed": "تمت معالجة إشعار البوابة", "webhook_unmatched": "إشعار بوابة غير مطابق"},
+    "models": {"Checkout": "المغادرة", "Invoice": "الفاتورة", "AccessGrant": "مفتاح الدخول الرقمي", "GuestOtpChallenge": "رمز تحقق النزيل", "Facility": "المرفق", "Hotel": "الفندق", "HotelMedia": "صورة الفندق", "HotelGroup": "مجموعة الفنادق", "User": "المستخدم", "IdentityVerificationAttempt": "محاولة التحقق", "IdentityVerificationSession": "التحقق من الهوية", "Room": "الغرفة", "RoomType": "نوع الغرفة", "RoomMedia": "صورة الغرفة", "LoyaltyRule": "قاعدة الولاء", "LoyaltyTransaction": "حركة نقاط الولاء", "Notification": "الإشعار", "Payment": "الدفع", "Guest": "النزيل", "Reservation": "الحجز", "Review": "التقييم", "ReviewCategory": "فئة التقييم", "FolioCharge": "رسوم كشف الحساب", "HotelService": "الخدمة", "ServiceCategory": "فئة الخدمة", "ServiceOrder": "طلب الخدمة", "ServiceReview": "تقييم الخدمة", "ProblemReport": "بلاغ مشكلة", "Role": "الدور", "Country": "الدولة", "City": "المدينة", "GuestAppContent": "محتوى تطبيق النزلاء"},
     "subtitle": "سجل بكل إجراء حساس.",
     "time": "الوقت",
     "actor": "المنفِّذ",

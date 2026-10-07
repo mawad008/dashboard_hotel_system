@@ -127,9 +127,9 @@ const facts = computed(() => {
         class="rounded-lg border border-border bg-secondary/40 p-3 text-2sm"
       >
         <div class="font-medium">
-          {{ session.data.value.latest_decision.result }}
+          {{ label('decisionResult', session.data.value.latest_decision.result) }}
           <span v-if="session.data.value.latest_decision.band" class="text-muted-foreground">
-            · {{ session.data.value.latest_decision.band }}
+            · {{ label('decisionBand', session.data.value.latest_decision.band) }}
           </span>
         </div>
         <p v-if="session.data.value.latest_decision.reason" class="mt-0.5 text-muted-foreground">

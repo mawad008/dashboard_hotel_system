@@ -851,6 +851,36 @@ export interface ProblemReport {
 export type NotificationChannel = 'in_app' | 'email' | 'sms'
 export type NotificationDeliveryStatus = 'pending' | 'sending' | 'sent' | 'failed'
 
+// The signed-in staff user's own dashboard inbox (GET /me/notifications).
+// Text is rendered client-side from `type` so it follows the UI language.
+export type StaffNotificationType =
+  | 'booking_created'
+  | 'booking_cancelled'
+  | 'deposit_received'
+  | 'payment_issue'
+  | 'identity_review_required'
+  | 'guest_verified'
+  | 'access_issued'
+  | 'access_issue_failed'
+  | 'checkout_completed'
+  | 'invoice_issued'
+  | 'service_requested'
+  | 'problem_reported'
+  | 'review_submitted'
+
+export interface StaffNotification {
+  id: number
+  type: StaffNotificationType
+  needs_attention: boolean
+  hotel_id: number
+  hotel_name?: string | null
+  hotel_name_i18n?: LocalizedMap | null
+  reservation_id: number | null
+  subject_id: number | null
+  read_at: string | null
+  created_at: string
+}
+
 export interface AppNotification {
   id: number
   reservation_id: number

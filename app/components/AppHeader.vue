@@ -32,6 +32,9 @@ const { t } = useI18n()
       <HotelSelector />
       <LanguageSelector />
       <ThemeToggle />
+      <PermissionGate permission="notifications.view">
+        <NotificationBell />
+      </PermissionGate>
       <div class="mx-1 hidden h-6 w-px bg-border sm:block" />
       <UserMenu />
     </div>

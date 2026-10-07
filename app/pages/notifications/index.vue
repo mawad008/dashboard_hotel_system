@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { notificationsService } from '~/services'
+import { notificationsService, staffNotificationsService } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
-import type { AppNotification } from '~/types/api'
+import type { AppNotification, StaffNotification } from '~/types/api'
 import { NOTIFICATION_STATUS_TONE } from '~/utils/statusMeta'
 import { ApiError } from '~/utils/apiError'
 
@@ -11,6 +11,79 @@ const { t } = useI18n()
 const app = useAppStore()
 const hotelCtx = useHotelContextStore()
 const route = useRoute()
+const router = useRouter()
+
+// ---------------------------------------------------------------------
+// Tabs — "mine" is the signed-in user's own inbox (fed by operational
+// events); "guests" is the hotel's guest-notification delivery log.
+// ---------------------------------------------------------------------
+
+type TabKey = 'mine' | 'guests'
+const tab = ref<TabKey>(route.query.tab === 'guests' ? 'guests' : 'mine')
+const staffStore = useStaffNotificationsStore()
+
+const tabs = computed(() => [
+  { key: 'mine' as const, label: t('staffNotifications.myTab'), count: staffStore.unreadCount || null },
+  { key: 'guests' as const, label: t('staffNotifications.guestsTab') },
+])
+
+watch(tab, (v) => {
+  router.replace({ query: { ...route.query, tab: v === 'mine' ? undefined : v } })
+  if (v === 'guests' && hotelId.value != null && !list.data.value) list.reload()
+})
+
+// ---------------------------------------------------------------------
+// My notifications
+// ---------------------------------------------------------------------
+
+const { open: openNotification } = useOpenStaffNotification()
+const inboxUnreadOnly = ref(false)
+const inboxPage = ref(1)
+const markingAll = ref(false)
+
+const inbox = useResource(() => staffNotificationsService.list({
+  unread: inboxUnreadOnly.value,
+  page: inboxPage.value,
+}))
+
+watch(() => inbox.data.value?.meta?.unread_count, (n) => {
+  if (n != null) staffStore.setCount(Number(n))
+})
+
+watch(inboxUnreadOnly, () => {
+  inboxPage.value = 1
+  inbox.reload()
+})
+
+// The bell (or a poll) changed the inbox — keep this list in sync.
+watch(() => staffStore.version, () => inbox.reload())
+
+function changeInboxPage(n: number) {
+  inboxPage.value = n
+  inbox.reload()
+}
+
+async function markAllInbox() {
+  if (markingAll.value) return
+  markingAll.value = true
+  try {
+    await staffNotificationsService.markAllRead()
+    staffStore.setCount(0)
+    staffStore.changed()
+  } catch (e) {
+    app.pushToast('error', e instanceof ApiError ? e.message : t('errors.genericBody'))
+  } finally {
+    markingAll.value = false
+  }
+}
+
+async function openInboxItem(n: StaffNotification) {
+  await openNotification(n)
+}
+
+// ---------------------------------------------------------------------
+// Guest notifications (hotel delivery log)
+// ---------------------------------------------------------------------
 
 onMounted(() => {
   const q = Number(route.query.hotel)
@@ -27,7 +100,7 @@ const list = useResource(async () => {
 }, { immediate: false })
 
 watch(hotelId, () => {
-  if (hotelId.value != null) { page.value = 1; list.reload() }
+  if (hotelId.value != null && tab.value === 'guests') { page.value = 1; list.reload() }
 }, { immediate: true })
 
 watch(unreadOnly, () => {
@@ -66,11 +139,57 @@ async function markRead(n: AppNotification) {
 
 <template>
   <div>
-    <PageHeader :title="t('nav.notifications')" :subtitle="t('notificationsPage.subtitle')" />
+    <PageHeader :title="t('nav.notifications')" :subtitle="t('staffNotifications.subtitle')" />
 
-    <NeedHotelNotice v-if="hotelId == null" />
+    <AppTabs v-model="tab" :tabs="tabs" class="mb-4" />
+
+    <!-- My notifications -->
+    <div v-if="tab === 'mine'" class="card overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <label class="flex items-center gap-2 text-2sm text-foreground">
+          <input v-model="inboxUnreadOnly" type="checkbox">
+          {{ t('notificationsPage.unreadOnly') }}
+        </label>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          :disabled="markingAll || staffStore.unreadCount === 0"
+          @click="markAllInbox"
+        >
+          <KtIcon name="check" />
+          {{ t('staffNotifications.markAllRead') }}
+        </button>
+      </div>
+
+      <LoadingState v-if="inbox.pending.value && !inbox.data.value" />
+      <ErrorState v-else-if="inbox.error.value" :error="inbox.error.value" @retry="inbox.reload" />
+      <EmptyState
+        v-else-if="(inbox.data.value?.data ?? []).length === 0"
+        icon="notification-on"
+        :title="inboxUnreadOnly ? t('staffNotifications.emptyUnread') : t('staffNotifications.empty')"
+        :body="t('staffNotifications.emptyHint')"
+      />
+      <div v-else class="divide-y divide-border p-1">
+        <StaffNotificationItem
+          v-for="n in inbox.data.value?.data ?? []"
+          :key="n.id"
+          :notification="n"
+          @open="openInboxItem"
+        />
+      </div>
+
+      <div v-if="(inbox.data.value?.meta?.last_page ?? 1) > 1" class="border-t border-border px-4 py-3">
+        <Pagination :meta="inbox.data.value!.meta" @page="changeInboxPage" />
+      </div>
+    </div>
+
+    <!-- Guest notifications -->
+    <NeedHotelNotice v-else-if="hotelId == null" />
 
     <template v-else>
+      <p class="mb-3 text-2sm text-muted-foreground">
+        {{ t('notificationsPage.subtitle') }}
+      </p>
       <FilterBar :active="unreadOnly" @clear="unreadOnly = false">
         <label class="flex items-center gap-2 text-2sm text-foreground">
           <input v-model="unreadOnly" type="checkbox">

@@ -6,6 +6,7 @@
 import type {
   AccessGrant,
   AppNotification,
+  StaffNotification,
   AuditLogEntry,
   CheckoutResult,
   CheckoutStatus,
@@ -566,6 +567,21 @@ export const notificationsService = {
     api().withMeta<AppNotification[]>(`/hotels/${hotelId}/notifications`, {
       query: cleanQuery({ ...params, unread: params.unread ? 1 : undefined }),
     }),
+}
+
+// ---- Staff inbox (the signed-in user's own notifications) -------------
+// Recipient is always the token's user. `meta.unread_count` on the list
+// drives the header bell; `unreadCount` is the cheap poll.
+export const staffNotificationsService = {
+  list: (params: { unread?: boolean, page?: number, per_page?: number } = {}) =>
+    api().withMeta<StaffNotification[]>('/me/notifications', {
+      query: cleanQuery({ ...params, unread: params.unread ? 1 : undefined }),
+    }),
+  unreadCount: () => api()<{ unread_count: number }>('/me/notifications/unread-count'),
+  markRead: (id: number) =>
+    api()<StaffNotification>(`/me/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllRead: () =>
+    api()<{ marked_read: number }>('/me/notifications/read-all', { method: 'POST', body: {} }),
 }
 
 // ---- Reports (aggregate reads, not hotel-nested) ----------------------

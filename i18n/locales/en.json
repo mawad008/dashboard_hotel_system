@@ -635,6 +635,8 @@
     "extendUnavailable": "Extend stay is only available while the guest is checked in."
   },
   "workspace": {
+    "decisionResult": {"auto_approved": "Auto-approved", "manual_review_required": "Manual review required", "retry_allowed": "Retry allowed", "retry_exhausted": "Retries exhausted", "staff_approved": "Approved by staff", "staff_rejected": "Rejected by staff"},
+    "decisionBand": {"high": "High confidence", "medium": "Medium confidence", "low": "Low confidence"},
     "payment": "Payment",
     "identity": "Identity verification",
     "access": "Digital access",
@@ -1105,6 +1107,36 @@
     "urgency_important": "Important",
     "urgency_urgent": "Urgent"
   },
+  "staffNotifications": {
+    "title": "Notifications",
+    "subtitle": "Operational events that need your attention, and the hotel's guest notifications.",
+    "myTab": "My notifications",
+    "guestsTab": "Guest notifications",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "empty": "You're all caught up.",
+    "emptyUnread": "No unread notifications.",
+    "emptyHint": "Bookings, payments, service requests, check-ins and check-outs for your hotels will appear here.",
+    "needsAttention": "Needs attention",
+    "unread": "Unread",
+    "bellUnread": "Notifications, {count} unread",
+    "reservationRef": "Reservation #{id}",
+    "types": {
+      "booking_created": "New booking",
+      "booking_cancelled": "Booking cancelled",
+      "deposit_received": "Deposit received",
+      "payment_issue": "Payment issue",
+      "identity_review_required": "Identity review required",
+      "guest_verified": "Guest identity verified",
+      "access_issued": "Digital key issued — guest checked in",
+      "access_issue_failed": "Digital key could not be issued",
+      "checkout_completed": "Guest checked out",
+      "invoice_issued": "Invoice issued",
+      "service_requested": "New service request",
+      "problem_reported": "New problem report",
+      "review_submitted": "New guest review"
+    }
+  },
   "notificationsPage": {
     "subtitle": "Operational notification feed.",
     "type": "Notification",
@@ -1144,6 +1176,9 @@
     "averageRating": "Average rating"
   },
   "auditPage": {
+    "entities": {"auth": "Staff sign-in", "checkout": "Checkout", "city": "City", "country": "Country", "digital_access": "Digital key", "facility": "Facility", "folio_charge": "Folio charge", "guest-app-content": "Guest app content", "guest.auth": "Guest sign-in", "guest.data_deletion": "Guest data deletion", "guest.otp": "Guest OTP code", "guest.preferences": "Guest preferences", "guest.profile": "Guest profile", "hotel": "Hotel", "hotel-group": "Hotel group", "hotel.media": "Hotel image", "identity.document": "Identity document", "identity.images": "Identity images", "identity_verification": "Identity verification", "invoice": "Invoice", "loyalty": "Loyalty points", "loyalty_rule": "Loyalty rule", "notification": "Notification", "payment": "Payment", "problem_report": "Problem report", "reservation": "Reservation", "review": "Review", "review_category": "Review category", "role": "Role", "room": "Room", "room-type": "Room type", "room_media": "Room image", "service": "Service", "service_category": "Service category", "service_order": "Service order", "service_review": "Service review", "user": "User"},
+    "verbs": {"activated": "activated", "approved_reservation_not_ready": "approved (reservation not ready)", "auto_approved": "auto-approved", "cancelled": "cancelled", "completed": "completed", "confirmed": "confirmed", "created": "created", "deactivated": "deactivated", "deleted": "deleted", "document_checked": "document checked", "document_submitted": "document submitted", "earned": "earned", "expired": "expired", "expiry_extended": "expiry extended", "extended": "extended", "failed": "failed", "final_settlement_requested": "final settlement requested", "fulfilled": "fulfilled", "hold_cancelled": "deposit hold cancelled", "hold_expired": "deposit hold expired", "hold_failed": "deposit hold failed", "hold_pending": "deposit hold pending", "hold_release_failed": "deposit release failed", "hold_release_requested": "deposit release requested", "hold_released": "deposit released", "hold_requested": "deposit hold requested", "hold_succeeded": "deposit held", "hold_succeeded_after_reservation_closed": "deposit held after reservation closed", "image-removed": "image removed", "image-uploaded": "image uploaded", "interrupted_check_purged": "interrupted check purged", "issue_failed": "issue failed", "issue_requested": "issue requested", "issued": "issued", "issued_reservation_not_ready": "issued (reservation not ready)", "locked_out": "locked out", "login": "signed in", "logout": "signed out", "manual_review_required": "manual review required", "moderated": "moderated", "purged": "purged", "redeemed": "redeemed", "redemption_reversed": "redemption reversed", "reordered": "reordered", "requested": "requested", "resent": "resent", "reservation_verified": "reservation verified", "retry_allowed": "retry allowed", "retry_exhausted": "retries exhausted", "retry_requested": "retry requested", "revoke_requested": "revoke requested", "revoked": "revoked", "room_assigned": "room assigned", "selfie_submitted": "selfie submitted", "sent": "sent", "session_started": "session started", "settled": "settled", "settlement_failed": "settlement failed", "settlement_pending": "settlement pending", "staff_approved": "approved by staff", "staff_rejected": "rejected by staff", "started": "started", "status_changed": "status changed", "status_updated": "status updated", "submitted": "submitted", "transitioned": "status changed", "updated": "updated", "uploaded": "uploaded", "webhook_duplicate_ignored": "duplicate webhook ignored", "webhook_processed": "webhook processed", "webhook_unmatched": "unmatched webhook"},
+    "models": {"Checkout": "Checkout", "Invoice": "Invoice", "AccessGrant": "Digital key", "GuestOtpChallenge": "Guest OTP code", "Facility": "Facility", "Hotel": "Hotel", "HotelMedia": "Hotel image", "HotelGroup": "Hotel group", "User": "User", "IdentityVerificationAttempt": "Verification attempt", "IdentityVerificationSession": "Identity verification", "Room": "Room", "RoomType": "Room type", "RoomMedia": "Room image", "LoyaltyRule": "Loyalty rule", "LoyaltyTransaction": "Loyalty transaction", "Notification": "Notification", "Payment": "Payment", "Guest": "Guest", "Reservation": "Reservation", "Review": "Review", "ReviewCategory": "Review category", "FolioCharge": "Folio charge", "HotelService": "Service", "ServiceCategory": "Service category", "ServiceOrder": "Service order", "ServiceReview": "Service review", "ProblemReport": "Problem report", "Role": "Role", "Country": "Country", "City": "City", "GuestAppContent": "Guest app content"},
     "subtitle": "A record of every sensitive action.",
     "time": "Time",
     "actor": "Actor",
