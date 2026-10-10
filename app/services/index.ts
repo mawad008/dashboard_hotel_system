@@ -24,6 +24,7 @@ import type {
   HotelComparisonReport,
   HotelService,
   IdentityVerification,
+  IdentityImageKind,
   Invoice,
   InvoiceStatus,
   LoyaltyAccount,
@@ -505,6 +506,9 @@ export const identityVerificationService = {
       method: 'POST',
       body: reason ? { decision, reason } : { decision },
     }),
+  /** The guest's ID front / back / selfie (private, audited, never cached). */
+  image: (reservationId: number, kind: IdentityImageKind) =>
+    api().blob(`/identity-verification/${reservationId}/images/${kind}`),
 }
 
 // ---- Reservation workspace: digital access / check-in ----------

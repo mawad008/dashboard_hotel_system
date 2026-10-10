@@ -701,6 +701,16 @@
     "markAllRead": "تعيين الكل كمقروء",
     "allRead": "تم تعيين كل الإشعارات كمقروءة.",
     "notificationsNote": "هذه هي قناة إشعارات النزيل لهذا الحجز، وتُنتَج عبر دورة الحياة المعتمدة. لا تُنشأ الإشعارات من اللوحة.",
+    "identityImages": "صور الهوية",
+    "identityImage": {
+      "document": "الوجه الأمامي",
+      "document_back": "الوجه الخلفي",
+      "selfie": "الصورة الشخصية"
+    },
+    "identityImageOpen": "فتح بالحجم الكامل",
+    "identityImageFailed": "تعذّر تحميل الصورة.",
+    "identityImagesNone": "لا توجد صور محفوظة لهذه المحاولة (لم تُرفع بعد أو حُذفت بعد انتهاء مدة الاحتفاظ).",
+    "identityImagesNote": "صور خاصة — يُسجَّل كل عرض لها. لا تحفظها أو تشاركها.",
     "documentCheck": "فحص الوثيقة",
     "documentType": "نوع الوثيقة",
     "documentBackImage": "صورة الخلف",

@@ -3,6 +3,7 @@ import { identityVerificationService } from '~/services'
 import { dateTime } from '~/utils/format'
 import { canReviewIdentity, IDENTITY_STATUS_TONE } from '~/utils/statusMeta'
 import { ApiError } from '~/utils/apiError'
+import type { IdentityImageKind } from '~/types/api'
 
 const props = defineProps<{ reservationId: number }>()
 const { t, te } = useI18n()
@@ -41,6 +42,48 @@ async function submit() {
 }
 
 const check = computed(() => session.data.value?.document_check ?? null)
+
+// The guest's ID images, fetched with the staff token (the endpoint is
+// private) and shown through object URLs that are revoked when replaced or
+// when the panel unmounts.
+const IMAGE_KINDS: IdentityImageKind[] = ['document', 'document_back', 'selfie']
+const availableImages = computed(() => {
+  const flags = session.data.value?.images
+  return flags ? IMAGE_KINDS.filter(k => flags[k]) : []
+})
+const imageUrls = ref<Partial<Record<IdentityImageKind, string>>>({})
+const imageTypes = ref<Partial<Record<IdentityImageKind, string>>>({})
+const imageErrors = ref<Partial<Record<IdentityImageKind, boolean>>>({})
+
+function revokeImages() {
+  for (const url of Object.values(imageUrls.value)) {
+    if (url) URL.revokeObjectURL(url)
+  }
+  imageUrls.value = {}
+  imageTypes.value = {}
+  imageErrors.value = {}
+}
+
+async function loadImages() {
+  revokeImages()
+  await Promise.all(availableImages.value.map(async (kind) => {
+    try {
+      const blob = await identityVerificationService.image(props.reservationId, kind)
+      imageUrls.value = { ...imageUrls.value, [kind]: URL.createObjectURL(blob) }
+      imageTypes.value = { ...imageTypes.value, [kind]: blob.type }
+    } catch {
+      imageErrors.value = { ...imageErrors.value, [kind]: true }
+    }
+  }))
+}
+
+// Reload when the session's images change (new attempt, after a review).
+watch(
+  () => [session.data.value?.attempts, availableImages.value.join(',')],
+  () => { if (import.meta.client) loadImages() },
+  { immediate: true },
+)
+onBeforeUnmount(revokeImages)
 
 /** Translate a backend code, falling back to the raw code for new ones. */
 function label(prefix: string, code: string | null | undefined): string {
@@ -104,6 +147,51 @@ const facts = computed(() => {
         :tone="IDENTITY_STATUS_TONE[session.data.value.status]"
       />
       <FactGrid :facts="facts" />
+      <div
+        v-if="session.data.value.images"
+        class="space-y-2 rounded-lg border border-border p-3"
+        data-testid="identity-images"
+      >
+        <span class="text-2sm font-medium">{{ t('workspace.identityImages') }}</span>
+        <p v-if="!availableImages.length" class="text-2sm text-muted-foreground">
+          {{ t('workspace.identityImagesNone') }}
+        </p>
+        <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <figure v-for="kind in availableImages" :key="kind" class="space-y-1">
+            <figcaption class="flex items-center justify-between text-2xs text-muted-foreground">
+              <span>{{ t(`workspace.identityImage.${kind}`) }}</span>
+              <a
+                v-if="imageUrls[kind]"
+                :href="imageUrls[kind]"
+                target="_blank"
+                rel="noopener"
+                class="text-primary hover:underline"
+              >{{ t('workspace.identityImageOpen') }}</a>
+            </figcaption>
+            <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-md border border-border bg-secondary/40">
+              <p v-if="imageErrors[kind]" class="p-2 text-center text-2xs text-destructive">
+                {{ t('workspace.identityImageFailed') }}
+              </p>
+              <iframe
+                v-else-if="imageUrls[kind] && imageTypes[kind] === 'application/pdf'"
+                :src="imageUrls[kind]"
+                :title="t(`workspace.identityImage.${kind}`)"
+                class="size-full"
+              />
+              <img
+                v-else-if="imageUrls[kind]"
+                :src="imageUrls[kind]"
+                :alt="t(`workspace.identityImage.${kind}`)"
+                class="size-full object-contain"
+              >
+              <span v-else class="size-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+            </div>
+          </figure>
+        </div>
+        <p class="text-2xs text-muted-foreground">
+          {{ t('workspace.identityImagesNote') }}
+        </p>
+      </div>
       <div v-if="check" class="space-y-2 rounded-lg border border-border p-3" data-testid="identity-document-check">
         <div class="flex items-center justify-between gap-2">
           <span class="text-2sm font-medium">{{ t('workspace.documentCheck') }}</span>

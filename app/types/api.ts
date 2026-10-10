@@ -582,7 +582,11 @@ export interface IdentityVerification {
   }
   /** OCR document check of the current attempt — outcome codes only, no PII. */
   document_check?: IdentityDocumentCheck
+  /** Which images of the current attempt can be opened (staff only). */
+  images?: Record<IdentityImageKind, boolean>
 }
+
+export type IdentityImageKind = 'document' | 'document_back' | 'selfie'
 
 export type IdentityDocumentCheckStatus =
   | 'verified'

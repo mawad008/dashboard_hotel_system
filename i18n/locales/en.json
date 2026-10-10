@@ -733,6 +733,16 @@
     "markAllRead": "Mark all read",
     "allRead": "All notifications marked read.",
     "notificationsNote": "This is the reservation's guest-facing notification feed, produced by the approved lifecycle. Notifications are never created from the dashboard.",
+    "identityImages": "ID images",
+    "identityImage": {
+      "document": "Front",
+      "document_back": "Back",
+      "selfie": "Selfie"
+    },
+    "identityImageOpen": "Open full size",
+    "identityImageFailed": "Couldn't load the image.",
+    "identityImagesNone": "No images are stored for this attempt (not uploaded yet, or deleted after the retention period).",
+    "identityImagesNote": "Private images — every view is logged. Don't save or share them.",
     "documentCheck": "Document check",
     "documentType": "Document type",
     "documentBackImage": "Back image",

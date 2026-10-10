@@ -12,6 +12,8 @@ type ApiRequestOptions = FetchOptions & {
 export interface ApiClient {
   <T>(url: string, options?: ApiRequestOptions): Promise<T>
   withMeta: <T>(url: string, options?: ApiRequestOptions) => Promise<{ data: T, meta: ApiMeta }>
+  /** A binary (non-envelope) response, e.g. a private image, as a Blob. */
+  blob: (url: string, options?: ApiRequestOptions) => Promise<Blob>
 }
 
 // The single API client for the whole dashboard. Every request goes through
@@ -91,6 +93,23 @@ export default defineNuxtPlugin((nuxtApp) => {
     try {
       const res = await raw<ApiEnvelope<T>>(url, options as Parameters<typeof raw>[1])
       return { data: res.data, meta: res.meta ?? {} }
+    } catch (err) {
+      const apiError = toApiError(err)
+      if (apiError.kind === 'unauthenticated') {
+        await handle401(options.silent401 === true)
+      }
+      throw apiError
+    }
+  }
+
+  client.blob = async (url: string, options: ApiRequestOptions = {}) => {
+    try {
+      return await raw<Blob>(url, {
+        ...(options as Parameters<typeof raw>[1]),
+        // The shared onRequest hook still adds the bearer token; the
+        // `Accept: application/json` it sets only shapes error bodies.
+        responseType: 'blob',
+      } as Parameters<typeof raw>[1])
     } catch (err) {
       const apiError = toApiError(err)
       if (apiError.kind === 'unauthenticated') {
