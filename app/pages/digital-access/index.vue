@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { frontDeskService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Reservation } from '~/types/api'
 import { RESERVATION_STATUS_TONE } from '~/utils/reservationStateMachine'
@@ -24,6 +25,7 @@ const tab = ref<TabKey>(
   initialTab === 'departures' || initialTab === 'in-house' ? initialTab : 'arrivals',
 )
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 const tabs = computed(() => [
   { key: 'arrivals' as const, label: t('digitalAccessPage.arrivals') },
@@ -33,9 +35,9 @@ const tabs = computed(() => [
 
 const list = useResource(async () => {
   if (hotelId.value == null) return null
-  if (tab.value === 'arrivals') return frontDeskService.arrivals(hotelId.value, { page: page.value })
-  if (tab.value === 'departures') return frontDeskService.departures(hotelId.value, { page: page.value })
-  return frontDeskService.inHouse(hotelId.value, { page: page.value })
+  if (tab.value === 'arrivals') return frontDeskService.arrivals(hotelId.value, { page: page.value, per_page: perPage.value })
+  if (tab.value === 'departures') return frontDeskService.departures(hotelId.value, { page: page.value, per_page: perPage.value })
+  return frontDeskService.inHouse(hotelId.value, { page: page.value, per_page: perPage.value })
 }, { immediate: false })
 
 watch(hotelId, () => {
@@ -43,6 +45,11 @@ watch(hotelId, () => {
 }, { immediate: true })
 
 watch(tab, () => {
+  page.value = 1
+  list.reload()
+})
+
+watch(perPage, () => {
   page.value = 1
   list.reload()
 })
@@ -83,9 +90,12 @@ const emptyTitle = computed(() => {
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="emptyTitle"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-id="{ row }">
           <NuxtLink :to="`/reservations/${(row as Reservation).id}`" class="text-primary hover:underline">

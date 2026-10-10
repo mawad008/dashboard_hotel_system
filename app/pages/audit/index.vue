@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { auditService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { AuditLogParams } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
 import type { AuditLogEntry } from '~/types/api'
@@ -48,6 +49,7 @@ const entityType = ref('')
 const range = ref({ from: '', to: '' })
 const hotelFilter = ref<number | ''>('')
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 function filters(): AuditLogParams {
   return {
@@ -57,6 +59,7 @@ function filters(): AuditLogParams {
     from: range.value.from || undefined,
     to: range.value.to || undefined,
     page: page.value,
+    per_page: perPage.value,
   }
 }
 
@@ -83,6 +86,11 @@ watch([actorId, action, entityType, range, hotelFilter], () => {
     list.reload()
   }, 300)
 }, { deep: true })
+
+watch(perPage, () => {
+  page.value = 1
+  list.reload()
+})
 
 function changePage(n: number) {
   page.value = n
@@ -141,9 +149,12 @@ const detailsOpen = computed({
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('auditPage.empty')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-created_at="{ row }">
           {{ dateTime((row as AuditLogEntry).created_at) }}

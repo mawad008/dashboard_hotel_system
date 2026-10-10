@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { facilitiesService, roomTypeMediaService, roomTypesService } from "~/services";
 import type { Column } from "~/components/DataTable.vue";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "~/utils/pagination";
 import type { Facility, RoomType, RoomTypeCustomSpec } from "~/types/api";
 import { localizedMap } from "~/utils/hotelGuestDetail";
 import { ApiError } from "~/utils/apiError";
@@ -31,12 +32,13 @@ const hotelId = computed(() => hotelCtx.currentHotelId);
 // ---------------------------------------------------------------------
 
 const page = ref(1);
+const perPage = ref(DEFAULT_PER_PAGE);
 
 const list = useResource(
   async () => {
     if (hotelId.value == null) return { data: [], meta: null };
 
-    return roomTypesService.paginate(hotelId.value, page.value);
+    return roomTypesService.paginate(hotelId.value, page.value, perPage.value);
   },
   { immediate: false },
 );
@@ -51,6 +53,11 @@ watch(
   },
   { immediate: true },
 );
+
+watch(perPage, () => {
+  page.value = 1;
+  list.reload();
+});
 
 function changePage(n: number) {
   page.value = n;
@@ -461,8 +468,11 @@ async function toggleActive(rt: RoomType) {
           :loading="list.pending.value"
           :error="list.error.value"
           :meta="list.data.value?.meta ?? null"
+          :per-page-options="PER_PAGE_OPTIONS"
+          :per-page="perPage"
           @retry="list.reload"
           @page="changePage"
+          @per-page="(n: number) => (perPage = n)"
         >
           <!-- Room Type -->
           <template #cell-name="{ row }">

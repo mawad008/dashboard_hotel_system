@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { hotelsService } from "~/services";
 import type { Column } from "~/components/DataTable.vue";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "~/utils/pagination";
 import type { Hotel } from "~/types/api";
 import { ApiError } from "~/utils/apiError";
 
@@ -17,8 +18,7 @@ const canManage = can("hotels.manage");
 const canEdit = canManage || can("hotels.update");
 
 const page = ref(1);
-const PER_PAGE_OPTIONS = [10, 15, 20];
-const perPage = ref(10);
+const perPage = ref(DEFAULT_PER_PAGE);
 const search = ref("");
 const status = ref<"all" | "active" | "inactive">("all");
 const sort = ref<"name" | "-name" | "created_at" | "-created_at">("name");

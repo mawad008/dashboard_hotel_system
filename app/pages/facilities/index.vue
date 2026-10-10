@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { facilitiesService } from "~/services";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "~/utils/pagination";
 import type { Column } from "~/components/DataTable.vue";
 import type { Facility } from "~/types/api";
 import { ApiError } from "~/utils/apiError";
@@ -14,6 +15,7 @@ const app = useAppStore();
 const canManage = can("facilities.manage");
 
 const page = ref(1);
+const perPage = ref(DEFAULT_PER_PAGE);
 const search = ref("");
 const status = ref<"all" | "active" | "inactive">("all");
 const sort = ref<"name" | "-name" | "key" | "-key">("name");
@@ -21,6 +23,7 @@ const sort = ref<"name" | "-name" | "key" | "-key">("name");
 function params() {
   return {
     page: page.value,
+    per_page: perPage.value,
     search: search.value.trim() || undefined,
     is_active:
       status.value === "all"
@@ -61,6 +64,11 @@ function clearFilters() {
   sort.value = "name";
   page.value = 1;
 }
+
+watch(perPage, () => {
+  page.value = 1;
+  list.reload();
+});
 
 function changePage(n: number) {
   page.value = n;
@@ -288,10 +296,13 @@ async function confirmDelete() {
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('facilities.empty')"
         clickable-rows
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
         @row-click="(row: Facility) => router.push(`/facilities/${row.id}/edit`)"
       >
         <!-- ========================================================= -->

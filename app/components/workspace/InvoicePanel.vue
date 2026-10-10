@@ -15,8 +15,11 @@ const notIssued = computed(() =>
   invoice.error.value instanceof ApiError && invoice.error.value.kind === 'not_found',
 )
 
+// The formal, print-ready invoice opens in its own tab (no dashboard
+// chrome) and prints itself — see pages/invoices/print/[reservationId].vue.
+const router = useRouter()
 function print() {
-  window.print()
+  window.open(router.resolve(`/invoices/print/${props.reservationId}`).href, '_blank')
 }
 </script>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { serviceReviewsService, servicesService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { HotelService, ServiceReview, ReviewStatus } from '~/types/api'
 import { ApiError } from '~/utils/apiError'
@@ -23,6 +24,7 @@ const hotelId = computed(() => hotelCtx.currentHotelId)
 const status = ref<'all' | ReviewStatus>('all')
 const serviceId = ref<'all' | number>('all')
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 // Service names for the filter dropdown + the table's service-name column
 // (ServiceReview only carries service_id — resolve it against the hotel's
@@ -44,6 +46,7 @@ const list = useResource(async () => {
     service_id: serviceId.value === 'all' ? undefined : serviceId.value,
     status: status.value === 'all' ? undefined : status.value,
     page: page.value,
+    per_page: perPage.value,
   })
 }, { immediate: false })
 
@@ -52,6 +55,11 @@ watch(hotelId, () => {
 }, { immediate: true })
 
 watch([status, serviceId], () => {
+  page.value = 1
+  list.reload()
+})
+
+watch(perPage, () => {
   page.value = 1
   list.reload()
 })
@@ -136,9 +144,12 @@ async function moderate(review: ServiceReview, decision: 'published' | 'rejected
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('serviceReviewsPage.empty')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-guest_id="{ row }">
           <NuxtLink v-if="(row as ServiceReview).guest_id" :to="`/guests/${(row as ServiceReview).guest_id}`" class="text-primary hover:underline">

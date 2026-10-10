@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { notificationsService, staffNotificationsService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { AppNotification, StaffNotification } from '~/types/api'
 import { NOTIFICATION_STATUS_TONE } from '~/utils/statusMeta'
@@ -39,18 +40,20 @@ watch(tab, (v) => {
 const { open: openNotification } = useOpenStaffNotification()
 const inboxUnreadOnly = ref(false)
 const inboxPage = ref(1)
+const inboxPerPage = ref(DEFAULT_PER_PAGE)
 const markingAll = ref(false)
 
 const inbox = useResource(() => staffNotificationsService.list({
   unread: inboxUnreadOnly.value,
   page: inboxPage.value,
+  per_page: inboxPerPage.value,
 }))
 
 watch(() => inbox.data.value?.meta?.unread_count, (n) => {
   if (n != null) staffStore.setCount(Number(n))
 })
 
-watch(inboxUnreadOnly, () => {
+watch([inboxUnreadOnly, inboxPerPage], () => {
   inboxPage.value = 1
   inbox.reload()
 })
@@ -93,10 +96,11 @@ onMounted(() => {
 const hotelId = computed(() => hotelCtx.currentHotelId)
 const unreadOnly = ref(false)
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 const list = useResource(async () => {
   if (hotelId.value == null) return null
-  return notificationsService.forHotel(hotelId.value, { unread: unreadOnly.value, page: page.value })
+  return notificationsService.forHotel(hotelId.value, { unread: unreadOnly.value, page: page.value, per_page: perPage.value })
 }, { immediate: false })
 
 watch(hotelId, () => {
@@ -104,6 +108,11 @@ watch(hotelId, () => {
 }, { immediate: true })
 
 watch(unreadOnly, () => {
+  page.value = 1
+  list.reload()
+})
+
+watch(perPage, () => {
   page.value = 1
   list.reload()
 })
@@ -178,8 +187,14 @@ async function markRead(n: AppNotification) {
         />
       </div>
 
-      <div v-if="(inbox.data.value?.meta?.last_page ?? 1) > 1" class="border-t border-border px-4 py-3">
-        <Pagination :meta="inbox.data.value!.meta" @page="changeInboxPage" />
+      <div v-if="inbox.data.value?.meta && inbox.data.value.data.length" class="border-t border-border px-4 py-3">
+        <Pagination
+          :meta="inbox.data.value.meta"
+          :per-page-options="PER_PAGE_OPTIONS"
+          :per-page="inboxPerPage"
+          @page="changeInboxPage"
+          @per-page="(n: number) => (inboxPerPage = n)"
+        />
       </div>
     </div>
 
@@ -203,9 +218,12 @@ async function markRead(n: AppNotification) {
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('notificationsPage.empty')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-subject="{ row }">
           <div class="min-w-0">

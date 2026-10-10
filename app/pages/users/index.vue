@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { hotelsService, rbacService, usersService } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Role, StaffUser } from '~/types/api'
 import { ApiError } from '~/utils/apiError'
 
@@ -13,7 +14,8 @@ const app = useAppStore()
 const canManage = can('users.manage')
 
 const page = ref(1)
-const list = useResource(() => usersService.list(page.value))
+const perPage = ref(DEFAULT_PER_PAGE)
+const list = useResource(() => usersService.list(page.value, perPage.value))
 const hotels = useResource(() => hotelsService.list({ page: 1, per_page: 100 }), { immediate: canManage })
 
 // Role is a real entity relationship — options come from the RBAC API,
@@ -39,6 +41,11 @@ const columns = computed<Column[]>(() => [
   { key: 'is_active', label: t('users.status') },
   ...(canManage ? [{ key: 'actions', label: t('common.actions'), align: 'end' as const }] : []),
 ])
+
+watch(perPage, () => {
+  page.value = 1
+  list.reload()
+})
 
 function changePage(n: number) {
   page.value = n
@@ -148,8 +155,11 @@ async function confirmDelete() {
       :loading="list.pending.value"
       :error="list.error.value"
       :meta="list.data.value?.meta ?? null"
+      :per-page-options="PER_PAGE_OPTIONS"
+      :per-page="perPage"
       @retry="list.reload"
       @page="changePage"
+      @per-page="(n: number) => (perPage = n)"
     >
       <template #cell-name="{ row }">
         <span class="font-medium text-foreground">{{ (row as StaffUser).name }}</span>

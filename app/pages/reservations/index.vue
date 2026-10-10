@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { hotelsService, reservationsService } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Reservation, ReservationStatus } from '~/types/api'
 import { RESERVATION_STATUSES, RESERVATION_STATUS_TONE } from '~/utils/reservationStateMachine'
 import { date, money } from '~/utils/format'
@@ -12,10 +13,9 @@ const router = useRouter()
 const auth = useAuthStore()
 const { can } = useCan()
 
-const PER_PAGE_OPTIONS = [10, 15, 20]
 
 const page = ref(1)
-const perPage = ref(15)
+const perPage = ref(DEFAULT_PER_PAGE)
 const statusFilter = ref<ReservationStatus | ''>('')
 const hotelFilter = ref<number | ''>('')
 const search = ref('')

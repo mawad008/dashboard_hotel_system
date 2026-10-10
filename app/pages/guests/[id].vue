@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { guestsService, loyaltyService } from '~/services'
 import type { Column } from '~/components/DataTable.vue'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { LoyaltyTransaction, Reservation } from '~/types/api'
 import { RESERVATION_STATUS_TONE } from '~/utils/reservationStateMachine'
 import { date, money } from '~/utils/format'
@@ -34,7 +35,13 @@ const loyaltyColumns: Column[] = [
 ]
 
 const page = ref(1)
-const reservations = useResource(() => guestsService.reservations(id, page.value))
+const perPage = ref(DEFAULT_PER_PAGE)
+const reservations = useResource(() => guestsService.reservations(id, page.value, perPage.value))
+
+watch(perPage, () => {
+  page.value = 1
+  reservations.reload()
+})
 
 function changePage(n: number) {
   page.value = n
@@ -112,10 +119,13 @@ const columns: Column[] = [
             :loading="reservations.pending.value"
             :error="reservations.error.value"
             :meta="reservations.data.value?.meta ?? null"
+            :per-page-options="PER_PAGE_OPTIONS"
+            :per-page="perPage"
             :empty-title="t('guestsPage.noReservations')"
             clickable-rows
             @retry="reservations.reload"
             @page="changePage"
+            @per-page="(n: number) => (perPage = n)"
             @row-click="(row: Reservation) => router.push(`/reservations/${row.id}`)"
           >
             <template #cell-id="{ row }">

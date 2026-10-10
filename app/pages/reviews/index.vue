@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reviewCategoriesService, reviewsService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Review, ReviewCategory, ReviewStatus } from '~/types/api'
 import { ApiError } from '~/utils/apiError'
@@ -42,12 +43,14 @@ const tab = ref<ReviewsTab>('reviews')
 
 const status = ref<'all' | ReviewStatus>('all')
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 const list = useResource(async () => {
   if (hotelId.value == null) return null
   return reviewsService.list(hotelId.value, {
     status: status.value === 'all' ? undefined : status.value,
     page: page.value,
+    per_page: perPage.value,
   })
 }, { immediate: false })
 
@@ -71,6 +74,11 @@ watch(hotelId, () => {
 }, { immediate: true })
 
 watch(status, () => {
+  page.value = 1
+  list.reload()
+})
+
+watch(perPage, () => {
   page.value = 1
   list.reload()
 })
@@ -290,9 +298,12 @@ const barWidth = scoreBarWidth
           :loading="list.pending.value"
           :error="list.error.value"
           :meta="list.data.value?.meta ?? null"
+          :per-page-options="PER_PAGE_OPTIONS"
+          :per-page="perPage"
           :empty-title="t('reviewsPage.empty')"
           @retry="list.reload"
           @page="changePage"
+          @per-page="(n: number) => (perPage = n)"
         >
           <template #cell-guest="{ row }">
             <NuxtLink

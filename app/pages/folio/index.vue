@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { folioService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Folio } from '~/types/api'
 
@@ -18,6 +19,7 @@ const hotelId = computed(() => hotelCtx.currentHotelId)
 const search = ref('')
 const outstandingOnly = ref(false)
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 const list = useResource(async () => {
   if (hotelId.value == null) return null
@@ -25,6 +27,7 @@ const list = useResource(async () => {
     search: search.value.trim() || undefined,
     outstanding: outstandingOnly.value,
     page: page.value,
+    per_page: perPage.value,
   })
 }, { immediate: false })
 
@@ -44,6 +47,11 @@ watch(search, () => {
     page.value = 1
     list.reload()
   }, 300)
+})
+
+watch(perPage, () => {
+  page.value = 1
+  list.reload()
 })
 
 function changePage(n: number) {
@@ -84,9 +92,12 @@ const columns = computed<Column[]>(() => [
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('folioPage.empty')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-reservation="{ row }">
           <NuxtLink :to="`/reservations/${(row as Folio).reservation.id}`" class="font-medium text-primary hover:underline">

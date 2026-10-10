@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { guestsService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Guest } from '~/types/api'
 
@@ -9,10 +10,11 @@ const { t } = useI18n()
 const router = useRouter()
 
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 const search = ref('')
 
 function params() {
-  return { page: page.value, search: search.value.trim() || undefined }
+  return { page: page.value, per_page: perPage.value, search: search.value.trim() || undefined }
 }
 
 const list = useResource(() => guestsService.list(params()))
@@ -24,6 +26,11 @@ watch(search, () => {
     page.value = 1
     list.reload()
   }, 300)
+})
+
+watch(perPage, () => {
+  page.value = 1
+  list.reload()
 })
 
 function changePage(n: number) {
@@ -53,10 +60,13 @@ const columns = computed<Column[]>(() => [
       :loading="list.pending.value"
       :error="list.error.value"
       :meta="list.data.value?.meta ?? null"
+      :per-page-options="PER_PAGE_OPTIONS"
+      :per-page="perPage"
       :empty-title="t('guestsPage.empty')"
       clickable-rows
       @retry="list.reload"
       @page="changePage"
+      @per-page="(n: number) => (perPage = n)"
       @row-click="(row: Guest) => router.push(`/guests/${row.id}`)"
     >
       <template #cell-name="{ row }">

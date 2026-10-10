@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { roomMediaService, roomsService, roomTypesService } from "~/services";
 import type { Column } from "~/components/DataTable.vue";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "~/utils/pagination";
 import type { Room, RoomStatus } from "~/types/api";
 import { ROOM_STATUS_TONE } from "~/utils/reservationStateMachine";
 import { ApiError } from "~/utils/apiError";
@@ -58,8 +59,7 @@ const typeName = (id: number) =>
 
 const page = ref(1);
 const search = ref("");
-const PER_PAGE_OPTIONS = [15, 50, 100];
-const perPage = ref(15);
+const perPage = ref(DEFAULT_PER_PAGE);
 
 const list = useResource(
   async () => {

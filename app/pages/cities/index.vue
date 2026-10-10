@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { citiesService, countriesService } from "~/services";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "~/utils/pagination";
 import type { Column } from "~/components/DataTable.vue";
 import type { City } from "~/types/api";
 import { ApiError } from "~/utils/apiError";
@@ -13,6 +14,7 @@ const app = useAppStore();
 const canManage = can("locations.manage");
 
 const page = ref(1);
+const perPage = ref(DEFAULT_PER_PAGE);
 const search = ref("");
 const status = ref<"all" | "active" | "inactive">("all");
 const countryId = ref<number | null>(null);
@@ -20,6 +22,7 @@ const countryId = ref<number | null>(null);
 function paramsFor() {
   return {
     page: page.value,
+    per_page: perPage.value,
     search: search.value.trim() || undefined,
     country_id: countryId.value ?? undefined,
     is_active:
@@ -63,6 +66,11 @@ function clearFilters() {
   countryId.value = null;
   page.value = 1;
 }
+
+watch(perPage, () => {
+  page.value = 1;
+  list.reload();
+});
 
 function changePage(n: number) {
   page.value = n;
@@ -282,9 +290,12 @@ async function confirmDelete() {
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('locations.noCities')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <!-- ========================================================= -->
         <!-- City -->

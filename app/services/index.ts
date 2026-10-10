@@ -105,8 +105,8 @@ export const hotelGroupsService = {
 }
 
 // ---- Hotels ----------------------------------------------------------
-// GET /hotels returns the caller's accessible hotels, paginated (per_page
-// fixed to 15 server-side; ?page works). `search` / `is_active` / `sort`
+// GET /hotels returns the caller's accessible hotels, paginated (?page and
+// ?per_page, 15 by default server-side). `search` / `is_active` / `sort`
 // are real server-side filters (IndexHotelRequest) layered on top of the
 // caller's server-resolved hotel scope.
 export interface HotelListParams {
@@ -224,10 +224,10 @@ function cleanQuery(params: Record<string, unknown>): Record<string, unknown> {
 // ---- Room types (hotel-scoped) -------------------------------------
 export const roomTypesService = {
   list: (hotelId: number) => api()<RoomType[]>(`/hotels/${hotelId}/room-types`),
-  // The backend paginates this endpoint (15/page) — use this for the
-  // Room Types list table; use `list` for pickers that need every option.
-  paginate: (hotelId: number, page = 1) =>
-    api().withMeta<RoomType[]>(`/hotels/${hotelId}/room-types`, { query: { page } }),
+  // The backend paginates this endpoint (15/page by default) — use this for
+  // the Room Types list table; use `list` for pickers that need every option.
+  paginate: (hotelId: number, page = 1, perPage?: number) =>
+    api().withMeta<RoomType[]>(`/hotels/${hotelId}/room-types`, { query: cleanQuery({ page, per_page: perPage }) }),
   get: (hotelId: number, id: number) => api()<RoomType>(`/hotels/${hotelId}/room-types/${id}`),
   create: (hotelId: number, body: Record<string, unknown>) =>
     api()<RoomType>(`/hotels/${hotelId}/room-types`, { method: 'POST', body }),
@@ -436,8 +436,8 @@ export const guestsService = {
   list: (params: { search?: string, page?: number, per_page?: number } = {}) =>
     api().withMeta<Guest[]>('/guests', { query: cleanQuery(params) }),
   get: (id: number) => api()<Guest>(`/guests/${id}`),
-  reservations: (id: number, page = 1) =>
-    api().withMeta<Reservation[]>(`/guests/${id}/reservations`, { query: { page } }),
+  reservations: (id: number, page = 1, perPage?: number) =>
+    api().withMeta<Reservation[]>(`/guests/${id}/reservations`, { query: cleanQuery({ page, per_page: perPage }) }),
   // Register a walk-in guest — front desk, no OTP (guests.manage).
   create: (body: { name?: string, phone: string, email?: string }) =>
     api()<Guest>('/guests', { method: 'POST', body }),
@@ -640,7 +640,8 @@ export const rbacService = {
 
 // ---- Staff users ---------------------------------------------------
 export const usersService = {
-  list: (page = 1) => api().withMeta<StaffUser[]>('/users', { query: { page } }),
+  list: (page = 1, perPage?: number) =>
+    api().withMeta<StaffUser[]>('/users', { query: cleanQuery({ page, per_page: perPage }) }),
   get: (id: number) => api()<StaffUser>(`/users/${id}`),
   create: (body: Record<string, unknown>) => api()<StaffUser>('/users', { method: 'POST', body }),
   update: (id: number, body: Record<string, unknown>) =>

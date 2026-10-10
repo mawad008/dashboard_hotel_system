@@ -165,6 +165,8 @@ export interface Hotel {
   deposit_percentage: string | null
   // Whether displayed rates include taxes / the service fee (Room Detail).
   prices_include_taxes?: boolean
+  // Tax % added on top when rates exclude taxes (decimal string); null = none.
+  tax_rate?: string | null
   // Booking service fee ("رسوم الخدمة"): fixed per booking or % of the stay.
   service_fee_enabled?: boolean
   service_fee_type?: 'fixed' | 'percentage' | null
@@ -356,6 +358,12 @@ export interface Reservation {
   check_out: string
   status: ReservationStatus
   price_snapshot: string
+  service_fee_amount?: string
+  // Tax % snapshotted at booking (0 when rates include taxes) and its amount.
+  tax_rate?: string
+  tax_amount?: string
+  // Stay + service fee + tax.
+  total_amount?: string
   // Snapshotted at booking — never follows a later platform change.
   currency: string | null
   is_refundable: boolean
@@ -697,8 +705,33 @@ export interface Invoice {
   outstanding_total: string
   issued_at: string | null
   items?: InvoiceItem[]
+  // Printable-invoice header — single-invoice read only.
+  document?: InvoiceDocument
   created_at: string
   updated_at: string
+}
+
+export interface InvoiceDocument {
+  hotel: {
+    name: string
+    name_i18n: Record<string, string> | null
+    group_name: string | null
+    logo_url: string | null
+    city: { en: string, ar: string } | null
+    country: { en: string, ar: string } | null
+    phone: string | null
+  } | null
+  guest: { name: string | null, phone: string | null, email: string | null } | null
+  stay: {
+    check_in: string | null
+    check_out: string | null
+    nights: number | null
+    adults: number
+    children: number
+    room_type: string | null
+    room_number: string | null
+    tax_rate: string | null
+  } | null
 }
 
 // ---- Loyalty (LoyaltyAccountResource / LoyaltyTransactionResource / LoyaltyRuleResource) -

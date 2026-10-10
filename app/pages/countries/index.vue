@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { countriesService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Country } from '~/types/api'
 import { ApiError } from '~/utils/apiError'
@@ -13,12 +14,14 @@ const app = useAppStore()
 const canManage = can('locations.manage')
 
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 const search = ref('')
 const status = ref<'all' | 'active' | 'inactive'>('all')
 
 function params() {
   return {
     page: page.value,
+    per_page: perPage.value,
     search: search.value.trim() || undefined,
     is_active:
       status.value === 'all'
@@ -56,6 +59,11 @@ function clearFilters() {
   status.value = 'all'
   page.value = 1
 }
+
+watch(perPage, () => {
+  page.value = 1
+  list.reload()
+})
 
 function changePage(n: number) {
   page.value = n
@@ -276,9 +284,12 @@ async function confirmDelete() {
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('locations.noCountries')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <!-- ========================================================= -->
         <!-- Country -->

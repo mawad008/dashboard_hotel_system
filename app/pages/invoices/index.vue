@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { invoicesService } from '~/services'
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
 import type { Invoice, InvoiceStatus } from '~/types/api'
 import { INVOICE_STATUS_TONE } from '~/utils/statusMeta'
@@ -18,12 +19,14 @@ onMounted(() => {
 const hotelId = computed(() => hotelCtx.currentHotelId)
 const status = ref<'all' | InvoiceStatus>('all')
 const page = ref(1)
+const perPage = ref(DEFAULT_PER_PAGE)
 
 const list = useResource(async () => {
   if (hotelId.value == null) return null
   return invoicesService.list(hotelId.value, {
     status: status.value === 'all' ? undefined : status.value,
     page: page.value,
+    per_page: perPage.value,
   })
 }, { immediate: false })
 
@@ -32,6 +35,11 @@ watch(hotelId, () => {
 }, { immediate: true })
 
 watch(status, () => {
+  page.value = 1
+  list.reload()
+})
+
+watch(perPage, () => {
   page.value = 1
   list.reload()
 })
@@ -85,9 +93,12 @@ const columns = computed<Column[]>(() => [
         :loading="list.pending.value"
         :error="list.error.value"
         :meta="list.data.value?.meta ?? null"
+        :per-page-options="PER_PAGE_OPTIONS"
+        :per-page="perPage"
         :empty-title="t('invoicesPage.empty')"
         @retry="list.reload"
         @page="changePage"
+        @per-page="(n: number) => (perPage = n)"
       >
         <template #cell-invoice_number="{ row }">
           <NuxtLink :to="`/reservations/${(row as Invoice).reservation_id}?tab=invoice`" class="text-primary hover:underline">

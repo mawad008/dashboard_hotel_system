@@ -62,6 +62,7 @@ interface FormState {
   // the backend; the guest deposit hold is refused while it is unset.
   deposit_percentage: number | string | null;
   prices_include_taxes: boolean;
+  tax_rate: number | string | null;
   service_fee_enabled: boolean;
   service_fee_type: 'fixed' | 'percentage';
   service_fee_value: number | string | null;
@@ -105,6 +106,7 @@ function snapshot(h?: Hotel | null): FormState {
     star_rating: h?.star_rating ?? null,
     deposit_percentage: h?.deposit_percentage ?? null,
     prices_include_taxes: h?.prices_include_taxes ?? false,
+    tax_rate: h?.tax_rate ?? null,
     service_fee_enabled: h?.service_fee_enabled ?? false,
     service_fee_type: h?.service_fee_type ?? 'fixed',
     service_fee_value: h?.service_fee_value ?? null,
@@ -514,6 +516,9 @@ async function save() {
     star_rating: form.star_rating,
     deposit_percentage: depositPercentage,
     prices_include_taxes: form.prices_include_taxes,
+    // Only meaningful when rates exclude taxes; kept as-is otherwise so
+    // toggling "inclusive" back off restores it.
+    tax_rate: form.tax_rate !== '' && form.tax_rate != null ? Number(form.tax_rate) : null,
     service_fee_enabled: form.service_fee_enabled,
     service_fee_type: form.service_fee_enabled ? form.service_fee_type : null,
     service_fee_value:
@@ -865,12 +870,34 @@ onBeforeRouteLeave(() => {
             <span class="text-sm text-muted-foreground">%</span>
           </div>
         </FormField>
-        <FormField :label="t('hotels.pricesIncludeTitle')" :hint="t('hotels.pricesIncludeHint')">
-          <div class="flex flex-col gap-2">
+        <FormField
+          :label="t('hotels.pricesIncludeTitle')"
+          :hint="t('hotels.pricesIncludeHint')"
+          :error="fieldErrors.tax_rate"
+        >
+          <div class="flex flex-col gap-3">
             <label class="flex items-center gap-2 text-2sm">
               <input v-model="form.prices_include_taxes" type="checkbox">
               {{ t("hotels.pricesIncludeTaxes") }}
             </label>
+            <div v-if="!form.prices_include_taxes" class="flex flex-col gap-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-2sm">{{ t("hotels.taxRate.label") }}</span>
+                <input
+                  v-model="form.tax_rate"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  class="input max-w-32"
+                  dir="ltr"
+                  :aria-label="t('hotels.taxRate.label')"
+                >
+                <span class="text-sm text-muted-foreground">%</span>
+              </div>
+              <span class="text-xs text-muted-foreground">{{ t("hotels.taxRate.hint") }}</span>
+            </div>
           </div>
         </FormField>
         <FormField

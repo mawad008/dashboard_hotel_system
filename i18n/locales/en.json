@@ -412,6 +412,10 @@
     "pricesIncludeTaxes": "Displayed prices include taxes and fees",
     "pricesIncludeHint": "Shown to guests on the room detail as “Included”. Leave off unless your rates really include them.",
     "pricesIncludeTitle": "Price display",
+    "taxRate": {
+      "label": "Tax rate",
+      "hint": "Added on top of the room price and service fee at booking. Leave empty for no tax."
+    },
     "serviceFee": {
       "title": "Service fee",
       "hint": "Added to every new booking as its own line (“Service fee”) and shown to guests before they book. Existing bookings keep the fee they were booked with.",
@@ -1380,5 +1384,30 @@
     "bundledImage": "Built-in photo",
     "bundledText": "Built-in text",
     "removeConfirm": "Remove this image? The app will fall back to its built-in artwork."
+  },
+  "invoicePrint": {
+    "title": "Invoice",
+    "number": "Invoice no.",
+    "issuedAt": "Issue date",
+    "reservation": "Reservation",
+    "billedTo": "Billed to",
+    "stay": "Stay details",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "nights": "Nights",
+    "room": "Room",
+    "guests": "Guests",
+    "party": "{adults} adults · {children} children",
+    "draft": "Draft",
+    "thanks": "Thank you for staying at {hotel}.",
+    "generated": "This invoice was generated electronically and is valid without a signature.",
+    "lines": {
+      "accommodation": "Accommodation",
+      "stayExtension": "Stay extension",
+      "serviceFee": "Service fee",
+      "tax": "Tax",
+      "taxWithRate": "Tax ({rate}%)",
+      "loyaltyRedemption": "Loyalty points discount"
+    }
   }
 }
