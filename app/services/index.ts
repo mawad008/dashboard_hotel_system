@@ -17,6 +17,7 @@ import type {
   Folio,
   Guest,
   GuestAppContent,
+  GuestAppSettings,
   GuestAppImageSlot,
   Hotel,
   HotelGroup,
@@ -70,6 +71,7 @@ const api = () => useApi()
 // same content anonymously via GET /guest/app-content.
 export type GuestAppContentText = Partial<Pick<GuestAppContent,
   'app_name_i18n' | 'onboarding_title_i18n' | 'onboarding_body_i18n' | 'onboarding_cta_i18n' | 'faq'>>
+  & Partial<GuestAppSettings>
 
 export const guestAppContentService = {
   get: () => api()<GuestAppContent>('/app-content'),

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { guestAppContentService } from '~/services'
-import type { GuestAppContent, GuestAppImageSlot, LocalizedMap } from '~/types/api'
+import type { GuestAppContent, GuestAppImageSlot, GuestAppSettings, LocalizedMap } from '~/types/api'
 import { ApiError } from '~/utils/apiError'
 
-// Guest App branding + entry content: the splash logo + app name and the
-// onboarding photo / headline / body / button. Every field is optional —
-// a blank field falls back to the copy/artwork bundled in the app.
+// Guest App branding + entry content: the app name, logo, app icon and brand
+// colour, the onboarding photo / headline / body / button, the support
+// contacts, legal links and FAQ. Every field is optional — a blank field
+// falls back to the copy/artwork bundled in the app (or hides the action).
 definePageMeta({ permission: 'app-content.manage' })
 
 const { t, locale } = useI18n()
@@ -58,6 +59,78 @@ async function save() {
   }
   finally {
     saving.value = false
+  }
+}
+
+// ---- brand colour, support contacts, legal links ------------------------
+type SettingField = keyof GuestAppSettings
+const DEFAULT_PRIMARY = '#0E0C0A' // the app's built-in primary (v2 ink)
+const settings = reactive<Record<SettingField, string>>({
+  primary_color: '',
+  support_phone: '',
+  support_whatsapp: '',
+  support_email: '',
+  website_url: '',
+  terms_url: '',
+  privacy_url: '',
+})
+const CONTACT_FIELDS: Array<{ key: SettingField, label: string, type: string, placeholder: string }> = [
+  { key: 'support_phone', label: 'guestApp.supportPhone', type: 'tel', placeholder: '+20 100 000 0000' },
+  { key: 'support_whatsapp', label: 'guestApp.supportWhatsapp', type: 'tel', placeholder: '+201000000000' },
+  { key: 'support_email', label: 'guestApp.supportEmail', type: 'email', placeholder: 'support@example.com' },
+  { key: 'website_url', label: 'guestApp.website', type: 'url', placeholder: 'https://example.com' },
+]
+const LEGAL_FIELDS: Array<{ key: SettingField, label: string }> = [
+  { key: 'terms_url', label: 'guestApp.termsUrl' },
+  { key: 'privacy_url', label: 'guestApp.privacyUrl' },
+]
+const settingsErrors = ref<Record<string, string[]>>({})
+const savingSettings = ref(false)
+
+watch(() => content.data.value, (c) => {
+  if (!c) return
+  settings.primary_color = c.primary_color ?? ''
+  settings.support_phone = c.support?.phone ?? ''
+  settings.support_whatsapp = c.support?.whatsapp ?? ''
+  settings.support_email = c.support?.email ?? ''
+  settings.website_url = c.support?.website ?? ''
+  settings.terms_url = c.legal?.terms_url ?? ''
+  settings.privacy_url = c.legal?.privacy_url ?? ''
+}, { immediate: true })
+
+const isHex = (v: string) => /^#[0-9a-f]{6}$/i.test(v)
+// <input type="color"> needs a valid hex; blank shows the built-in colour.
+const colorPicker = computed({
+  get: () => (isHex(settings.primary_color) ? settings.primary_color : DEFAULT_PRIMARY),
+  set: (v: string) => { settings.primary_color = v.toUpperCase() },
+})
+const previewPrimary = computed(() => (isHex(settings.primary_color) ? settings.primary_color : DEFAULT_PRIMARY))
+// Same rule as the app: dark text on a light brand colour, white otherwise.
+const previewOnPrimary = computed(() => {
+  const hex = previewPrimary.value.slice(1)
+  const [r, g, b] = [0, 2, 4].map(i => Number.parseInt(hex.slice(i, i + 2), 16) / 255)
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+  const luminance = 0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!)
+  return luminance > 0.4 ? '#0E0C0A' : '#FFFFFF'
+})
+
+async function saveSettings() {
+  if (savingSettings.value) return
+  savingSettings.value = true
+  settingsErrors.value = {}
+  try {
+    const body = Object.fromEntries(
+      (Object.keys(settings) as SettingField[]).map(k => [k, settings[k].trim() || null]),
+    ) as unknown as GuestAppSettings
+    content.data.value = await guestAppContentService.update(body)
+    app.pushToast('success', t('guestApp.saved'))
+  }
+  catch (e) {
+    if (e instanceof ApiError && e.kind === 'validation' && e.errors) settingsErrors.value = e.errors
+    else app.pushToast('error', e instanceof ApiError ? e.message : t('errors.genericBody'))
+  }
+  finally {
+    savingSettings.value = false
   }
 }
 
@@ -121,6 +194,7 @@ const MAX_FILE_MB = 5
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
 const SLOTS: Array<{ slot: GuestAppImageSlot, label: string, hint: string }> = [
   { slot: 'logo', label: 'guestApp.logo', hint: 'guestApp.logoHint' },
+  { slot: 'app_icon', label: 'guestApp.appIcon', hint: 'guestApp.appIconHint' },
   { slot: 'onboarding_image', label: 'guestApp.onboardingImage', hint: 'guestApp.onboardingImageHint' },
 ]
 
@@ -130,7 +204,9 @@ const removeTarget = ref<GuestAppImageSlot | null>(null)
 function imageUrl(slot: GuestAppImageSlot): string | null {
   const c = content.data.value
   if (!c) return null
-  return slot === 'logo' ? c.logo_url : c.onboarding_image_url
+  if (slot === 'logo') return c.logo_url
+  if (slot === 'app_icon') return c.app_icon_url
+  return c.onboarding_image_url
 }
 
 async function onPick(slot: GuestAppImageSlot, event: Event) {
@@ -204,7 +280,7 @@ const previewDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'))
                     :src="imageUrl(s.slot)!"
                     :alt="t(s.label)"
                     class="size-full"
-                    :class="s.slot === 'logo' ? 'object-contain' : 'object-cover'"
+                    :class="s.slot === 'onboarding_image' ? 'object-cover' : 'object-contain'"
                   >
                   <KtIcon v-else name="picture" class="text-muted-foreground" />
                   <div v-if="busySlot === s.slot" class="absolute inset-0 flex items-center justify-center bg-background/60">
@@ -251,6 +327,55 @@ const previewDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'))
             </div>
             <button type="submit" class="btn btn-primary" :disabled="saving">
               {{ saving ? t('common.saving') : t('common.save') }}
+            </button>
+          </form>
+        </DataCard>
+
+        <DataCard :title="t('guestApp.brandingTitle')">
+          <InfoNote class="mb-4">
+            {{ t('guestApp.brandingNote') }}
+          </InfoNote>
+          <form class="space-y-5" novalidate @submit.prevent="saveSettings">
+            <FormField for-id="primary-color" :label="t('guestApp.primaryColor')" :error="settingsErrors.primary_color" :hint="t('guestApp.primaryColorHint')">
+              <div class="flex flex-wrap items-center gap-2">
+                <input v-model="colorPicker" type="color" class="h-10 w-14 cursor-pointer rounded-md border border-border bg-background p-1" :aria-label="t('guestApp.primaryColor')">
+                <input id="primary-color" v-model="settings.primary_color" class="input w-36 font-mono uppercase" dir="ltr" maxlength="7" :placeholder="DEFAULT_PRIMARY" autocomplete="off">
+                <button v-if="settings.primary_color" type="button" class="btn btn-secondary btn-sm" @click="settings.primary_color = ''">
+                  {{ t('guestApp.useBuiltIn') }}
+                </button>
+              </div>
+            </FormField>
+
+            <div>
+              <p class="mb-2 text-2sm font-semibold text-foreground">
+                {{ t('guestApp.contactTitle') }}
+              </p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <FormField v-for="f in CONTACT_FIELDS" :key="f.key" :for-id="f.key" :label="t(f.label)" :error="settingsErrors[f.key]">
+                  <input :id="f.key" v-model="settings[f.key]" :type="f.type" class="input" dir="ltr" :placeholder="f.placeholder" autocomplete="off">
+                </FormField>
+              </div>
+              <p class="mt-1.5 text-2xs text-muted-foreground">
+                {{ t('guestApp.contactNote') }}
+              </p>
+            </div>
+
+            <div>
+              <p class="mb-2 text-2sm font-semibold text-foreground">
+                {{ t('guestApp.legalTitle') }}
+              </p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <FormField v-for="f in LEGAL_FIELDS" :key="f.key" :for-id="f.key" :label="t(f.label)" :error="settingsErrors[f.key]">
+                  <input :id="f.key" v-model="settings[f.key]" type="url" class="input" dir="ltr" placeholder="https://" autocomplete="off">
+                </FormField>
+              </div>
+              <p class="mt-1.5 text-2xs text-muted-foreground">
+                {{ t('guestApp.legalNote') }}
+              </p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" :disabled="savingSettings">
+              {{ savingSettings ? t('common.saving') : t('common.save') }}
             </button>
           </form>
         </DataCard>
@@ -334,15 +459,19 @@ const previewDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'))
               <p class="mt-1 text-2xs leading-snug">
                 {{ pick('onboarding_body_i18n') || t('guestApp.bundledText') }}
               </p>
-              <div class="mt-2 rounded-full bg-[#0E0C0A] py-1.5 text-2xs font-semibold">
+              <div class="mt-2 rounded-full py-1.5 text-2xs font-semibold" :style="{ backgroundColor: previewPrimary, color: previewOnPrimary }">
                 {{ pick('onboarding_cta_i18n') || t('guestApp.bundledText') }}
               </div>
             </div>
           </div>
         </div>
-        <p class="mt-3 text-center text-2xs text-muted-foreground">
-          {{ t('guestApp.appName') }}: <strong>{{ pick('app_name_i18n') || t('guestApp.bundledText') }}</strong>
-        </p>
+        <div class="mt-3 flex items-center justify-center gap-2 text-2xs text-muted-foreground">
+          <span class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+            <img v-if="content.data.value?.app_icon_url" :src="content.data.value.app_icon_url" :alt="t('guestApp.appIcon')" class="size-full object-cover">
+            <KtIcon v-else name="picture" class="text-muted-foreground" />
+          </span>
+          <span>{{ t('guestApp.appName') }}: <strong>{{ pick('app_name_i18n') || t('guestApp.bundledText') }}</strong></span>
+        </div>
       </DataCard>
     </div>
 

@@ -2,7 +2,7 @@
 import { settlementsService } from '~/services'
 import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from '~/utils/pagination'
 import type { Column } from '~/components/DataTable.vue'
-import type { CheckoutStatus, Settlement } from '~/types/api'
+import type { CheckoutStatus, DepositState, Settlement } from '~/types/api'
 import { CHECKOUT_STATUS_TONE } from '~/utils/statusMeta'
 
 definePageMeta({ permission: 'checkout.perform' })
@@ -54,11 +54,26 @@ function clearFilters() {
   status.value = 'all'
 }
 
+const DEPOSIT_TONE: Record<DepositState, 'warning' | 'neutral' | 'success'> = {
+  held: 'warning',
+  none: 'neutral',
+  applied: 'success',
+  released: 'success',
+}
+const positive = (v: string) => Number(v) > 0
+
 const STATUSES: CheckoutStatus[] = ['in_progress', 'awaiting_settlement', 'settlement_failed', 'completed']
 
+// Full settlement per row: what the stay cost (accommodation + services →
+// total), what the guest still pays, and what the deposit hold returns.
 const columns = computed<Column[]>(() => [
   { key: 'reservation_id', label: t('settlementsPage.reservation') },
-  { key: 'outstanding_total', label: t('settlementsPage.amount'), align: 'end' },
+  { key: 'accommodation', label: t('settlement.accommodation'), align: 'end' },
+  { key: 'services', label: t('settlement.services'), align: 'end' },
+  { key: 'total', label: t('settlement.total'), align: 'end' },
+  { key: 'deposit', label: t('settlement.deposit'), align: 'end' },
+  { key: 'balance_due', label: t('settlement.balanceDue'), align: 'end' },
+  { key: 'released', label: t('settlementsPage.depositReturned'), align: 'end' },
   { key: 'settlementStatus', label: t('settlementsPage.settlementStatus') },
   { key: 'date', label: t('settlementsPage.date') },
 ])
@@ -102,10 +117,47 @@ const columns = computed<Column[]>(() => [
             #{{ (row as Settlement).reservation_id }}
           </NuxtLink>
         </template>
-        <template #cell-outstanding_total="{ row }">
+        <template #cell-accommodation="{ row }">
+          <span v-if="(row as Settlement).settlement">{{ money((row as Settlement).settlement!.accommodation, (row as Settlement).currency) }}</span>
+          <span v-else class="text-muted-foreground">—</span>
+        </template>
+        <template #cell-services="{ row }">
+          <span v-if="(row as Settlement).settlement">{{ money((row as Settlement).settlement!.services, (row as Settlement).currency) }}</span>
+          <span v-else class="text-muted-foreground">—</span>
+        </template>
+        <template #cell-total="{ row }">
           <span class="font-medium text-foreground">
-            {{ money((row as Settlement).outstanding_total, (row as Settlement).currency) }}
+            {{ money((row as Settlement).settlement?.total ?? (row as Settlement).charges_total, (row as Settlement).currency) }}
           </span>
+        </template>
+        <template #cell-deposit="{ row }">
+          <div v-if="(row as Settlement).settlement" class="flex items-center justify-end gap-2">
+            <StatusBadge
+              :label="t(`settlement.depositState.${(row as Settlement).settlement!.deposit.state}`)"
+              :tone="DEPOSIT_TONE[(row as Settlement).settlement!.deposit.state]"
+            />
+            <span>{{ money((row as Settlement).settlement!.deposit.amount, (row as Settlement).currency) }}</span>
+          </div>
+          <span v-else class="text-muted-foreground">—</span>
+        </template>
+        <template #cell-balance_due="{ row }">
+          <span
+            class="font-medium"
+            :class="positive((row as Settlement).settlement?.balance_due ?? (row as Settlement).outstanding_total) ? 'text-warning' : 'text-foreground'"
+          >
+            {{ money((row as Settlement).settlement?.balance_due ?? (row as Settlement).outstanding_total, (row as Settlement).currency) }}
+          </span>
+        </template>
+        <template #cell-released="{ row }">
+          <template v-if="(row as Settlement).settlement">
+            <span
+              class="font-medium"
+              :class="positive((row as Settlement).settlement!.deposit.released) || positive((row as Settlement).settlement!.credit) ? 'text-success' : 'text-foreground'"
+            >
+              {{ money(String(Number((row as Settlement).settlement!.deposit.released) + Number((row as Settlement).settlement!.credit)), (row as Settlement).currency) }}
+            </span>
+          </template>
+          <span v-else class="text-muted-foreground">—</span>
         </template>
         <template #cell-settlementStatus="{ row }">
           <StatusBadge

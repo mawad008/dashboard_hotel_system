@@ -117,18 +117,36 @@ export interface HotelMedia {
 // ---- Guest App branding + entry content (GuestAppContentResource) ------
 // App-wide singleton. A null map / missing locale = "the app's bundled
 // default"; images are resolved public URLs (never storage paths).
-export type GuestAppImageSlot = 'logo' | 'onboarding_image'
+export type GuestAppImageSlot = 'logo' | 'onboarding_image' | 'app_icon'
 
 export interface GuestAppContent {
   app_name_i18n: LocalizedMap | null
   logo_url: string | null
   onboarding_image_url: string | null
+  // Square icon — web favicon / home-screen icon (native icons are build-time).
+  app_icon_url: string | null
+  // `#RRGGBB` — the app's primary colour; null = built-in palette.
+  primary_color: string | null
   onboarding_title_i18n: LocalizedMap | null
   onboarding_body_i18n: LocalizedMap | null
   onboarding_cta_i18n: LocalizedMap | null
   // PROFILE_Support "الأسئلة الشائعة" — ordered, both locales per entry.
   faq: GuestAppFaqItem[]
+  // Support-page contact actions; null hides that action.
+  support: { phone: string | null, whatsapp: string | null, email: string | null, website: string | null }
+  legal: { terms_url: string | null, privacy_url: string | null }
   updated_at: string | null
+}
+
+// Plain settings on PATCH /app-content (blank clears them).
+export interface GuestAppSettings {
+  primary_color: string | null
+  support_phone: string | null
+  support_whatsapp: string | null
+  support_email: string | null
+  website_url: string | null
+  terms_url: string | null
+  privacy_url: string | null
 }
 
 export interface GuestAppFaqItem {
@@ -497,12 +515,39 @@ export interface Folio {
     payments_total: string
     outstanding_total: string
   }
+  // Full settlement — complete before checkout too (SettlementSummary).
+  settlement: FolioSettlement
   payment_summary: null | {
     status: PaymentStatus
     amount: string
     currency: string
     is_captured: boolean
   }
+}
+
+export type DepositState = 'none' | 'held' | 'applied' | 'released'
+
+export interface FolioSettlement {
+  accommodation: string
+  services: string
+  service_fee: string
+  tax_rate: string
+  tax: string
+  loyalty_discount: string
+  total: string
+  paid: string
+  deposit: {
+    amount: string
+    state: DepositState
+    payment_status: PaymentStatus | null
+    applied: string
+    released: string
+  }
+  // What the guest still pays beyond what is paid and the deposit hold.
+  balance_due: string
+  credit: string
+  // false = projection (guest not checked out yet).
+  is_final: boolean
 }
 
 // ---- Stay services -------------------------------------------
@@ -679,6 +724,9 @@ export interface Settlement {
   currency: string | null
   started_at: string | null
   completed_at: string | null
+  // Full settlement (accommodation, services, deposit…) — the totals above
+  // hold the folio's posted charges only (services alone before checkout).
+  settlement?: FolioSettlement
 }
 
 export type InvoiceStatus = 'draft' | 'issued'

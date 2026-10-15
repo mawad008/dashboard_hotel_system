@@ -23,32 +23,10 @@ const folio = useResource(() => folioService.get(props.reservationId))
     </template>
 
     <div v-if="folio.data.value" class="space-y-4">
-      <div class="grid gap-3 sm:grid-cols-3">
-        <div class="rounded-lg border border-border p-3">
-          <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-            {{ t('workspace.chargesTotal') }}
-          </div>
-          <div class="mt-0.5 text-lg font-semibold">
-            {{ money(folio.data.value.totals.charges_total, folio.data.value.currency) }}
-          </div>
-        </div>
-        <div class="rounded-lg border border-border p-3">
-          <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-            {{ t('workspace.paymentsTotal') }}
-          </div>
-          <div class="mt-0.5 text-lg font-semibold text-success">
-            {{ money(folio.data.value.totals.payments_total, folio.data.value.currency) }}
-          </div>
-        </div>
-        <div class="rounded-lg border border-border p-3">
-          <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-            {{ t('workspace.outstanding') }}
-          </div>
-          <div class="mt-0.5 text-lg font-semibold text-warning">
-            {{ money(folio.data.value.totals.outstanding_total, folio.data.value.currency) }}
-          </div>
-        </div>
-      </div>
+      <WorkspaceSettlementSummary
+        :settlement="folio.data.value.settlement"
+        :currency="folio.data.value.currency"
+      />
 
       <div v-if="folio.data.value.payment_summary" class="flex flex-wrap items-center gap-2 text-2sm">
         <span class="text-muted-foreground">{{ t('workspace.paymentSummary') }}:</span>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { checkoutService } from '~/services'
+import { checkoutService, folioService } from '~/services'
 import type { CheckoutResult } from '~/types/api'
-import { dateTime, money } from '~/utils/format'
+import { dateTime } from '~/utils/format'
 import { CHECKOUT_STATUS_TONE, PAYMENT_STATUS_TONE } from '~/utils/statusMeta'
 import { ApiError } from '~/utils/apiError'
 
@@ -11,6 +11,10 @@ const { can } = useCan()
 const app = useAppStore()
 
 const canPerform = can('checkout.perform')
+
+// The full settlement the guest is checked out against — shown before the
+// checkout (projection) and refreshed after it (final).
+const folio = useResource(() => folioService.get(props.reservationId))
 
 const result = ref<CheckoutResult | null>(null)
 const busy = ref(false)
@@ -30,10 +34,9 @@ async function perform() {
     problem.value = e instanceof ApiError ? e.message : t('errors.genericBody')
   } finally {
     busy.value = false
+    void folio.reload()
   }
 }
-
-const totals = computed(() => result.value?.totals)
 </script>
 
 <template>
@@ -57,6 +60,12 @@ const totals = computed(() => result.value?.totals)
         <span>{{ problem }}</span>
       </div>
 
+      <WorkspaceSettlementSummary
+        v-if="folio.data.value"
+        :settlement="folio.data.value.settlement"
+        :currency="folio.data.value.currency"
+      />
+
       <div v-if="result" class="space-y-3">
         <div class="flex flex-wrap items-center gap-3">
           <StatusBadge
@@ -67,32 +76,6 @@ const totals = computed(() => result.value?.totals)
             :label="t(`status.${result.reservation.status}`)"
             tone="neutral"
           />
-        </div>
-        <div v-if="totals" class="grid gap-3 sm:grid-cols-3">
-          <div class="rounded-lg border border-border p-3">
-            <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-              {{ t('workspace.chargesTotal') }}
-            </div>
-            <div class="mt-0.5 font-semibold">
-              {{ money(totals.charges_total, result.currency) }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-border p-3">
-            <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-              {{ t('workspace.paymentsTotal') }}
-            </div>
-            <div class="mt-0.5 font-semibold text-success">
-              {{ money(totals.payments_total, result.currency) }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-border p-3">
-            <div class="text-2xs uppercase tracking-wide text-muted-foreground">
-              {{ t('workspace.outstanding') }}
-            </div>
-            <div class="mt-0.5 font-semibold text-warning">
-              {{ money(totals.outstanding_total, result.currency) }}
-            </div>
-          </div>
         </div>
         <div v-if="result.payment" class="flex items-center gap-2 text-2sm">
           <span class="text-muted-foreground">{{ t('workspace.settlementStatus') }}:</span>
