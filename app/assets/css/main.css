@@ -65,6 +65,11 @@
   --shadow-color: 17 15 12;     /* stone/950 as RGB triplet */
 
   --radius: 0.625rem;
+
+  /* STDY HOTELS logo colours (logo artwork only, not UI chrome). */
+  --brand-navy: #142544;
+  --brand-gold: #d3a524;
+  --brand-ink: var(--brand-navy); /* wordmark letters */
 }
 
 .dark {
@@ -105,6 +110,8 @@
   --ring: #d2ae65;              /* gold/300 */
 
   --shadow-color: 0 0 0;
+
+  --brand-ink: var(--foreground); /* navy is unreadable on ink */
 }
 
 /* ---------------------------------------------------------------------------
@@ -126,6 +133,9 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-ink: var(--brand-ink);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);

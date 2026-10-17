@@ -26,7 +26,7 @@ const { t } = useI18n();
         <div class="relative z-10 w-full max-w-[420px]">
           <!-- Logo -->
           <div class="mb-10">
-            <AppLogo />
+            <AppLogo size="lg" />
           </div>
 
           <!-- Page content -->
@@ -102,11 +102,7 @@ const { t } = useI18n();
           <!-- Hero copy -->
           <div class="max-w-[620px]">
             <!-- Icon -->
-            <div
-              class="mb-7 flex size-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white shadow-xl backdrop-blur-md"
-            >
-              <KtIcon name="bank" variant="duotone" class="text-[28px]" />
-            </div>
+            <AppLogo compact size="lg" class="mb-7" />
 
             <!-- Heading -->
             <h1
