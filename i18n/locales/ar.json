@@ -1221,7 +1221,9 @@
       "service_category": "فئة الخدمة",
       "service_order": "طلب الخدمة",
       "service_review": "تقييم الخدمة",
-      "user": "المستخدم"
+      "user": "المستخدم",
+      "room.media": "صورة الغرفة",
+      "room-type.media": "صورة نوع الغرفة"
     },
     "verbs": {
       "activated": "تم التفعيل",
@@ -1294,7 +1296,10 @@
       "uploaded": "تم الرفع",
       "webhook_duplicate_ignored": "تم تجاهل إشعار مكرر",
       "webhook_processed": "تمت معالجة إشعار البوابة",
-      "webhook_unmatched": "إشعار بوابة غير مطابق"
+      "webhook_unmatched": "إشعار بوابة غير مطابق",
+      "image_viewed": "تم عرض صورة المستند",
+      "adjusted": "تم التعديل",
+      "departed_early": "مغادرة مبكرة"
     },
     "models": {
       "Checkout": "المغادرة",

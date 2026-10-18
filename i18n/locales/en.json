@@ -1253,7 +1253,9 @@
       "service_category": "Service category",
       "service_order": "Service order",
       "service_review": "Service review",
-      "user": "User"
+      "user": "User",
+      "room.media": "Room image",
+      "room-type.media": "Room type image"
     },
     "verbs": {
       "activated": "activated",
@@ -1326,7 +1328,10 @@
       "uploaded": "uploaded",
       "webhook_duplicate_ignored": "duplicate webhook ignored",
       "webhook_processed": "webhook processed",
-      "webhook_unmatched": "unmatched webhook"
+      "webhook_unmatched": "unmatched webhook",
+      "image_viewed": "document image viewed",
+      "adjusted": "adjusted",
+      "departed_early": "departed early"
     },
     "models": {
       "Checkout": "Checkout",
