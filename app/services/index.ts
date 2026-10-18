@@ -471,11 +471,14 @@ export const settlementsService = {
 }
 
 // ---- Reservation workspace: folio -------------------------------
+// `-` prefix = descending; the server defaults to `-id`.
+export type FolioSort = 'id' | '-id' | 'check_in' | '-check_in' | 'check_out' | '-check_out'
+
 export const folioService = {
   get: (reservationId: number) => api()<Folio>(`/reservations/${reservationId}/folio`),
   // The standalone folio ledger for a hotel — every totals row is computed
   // by the same authoritative FolioService the per-reservation read uses.
-  listForHotel: (hotelId: number, params: { search?: string, outstanding?: boolean, page?: number, per_page?: number } = {}) =>
+  listForHotel: (hotelId: number, params: { search?: string, outstanding?: boolean, sort?: FolioSort, page?: number, per_page?: number } = {}) =>
     api().withMeta<Folio[]>(`/hotels/${hotelId}/folios`, {
       query: cleanQuery({ ...params, outstanding: params.outstanding ? 1 : undefined }),
     }),

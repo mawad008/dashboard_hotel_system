@@ -996,16 +996,26 @@
     "empty": "No payments yet."
   },
   "folioPage": {
-    "subtitle": "Every reservation's charges, payments and outstanding balance.",
+    "subtitle": "Every reservation's bill, payments and outstanding balance.",
     "reservation": "Reservation",
     "guest": "Guest",
-    "charges": "Charges",
+    "charges": "Total",
     "payments": "Payments",
     "outstanding": "Outstanding",
     "searchPlaceholder": "Reservation ID or guest",
     "outstandingOnly": "Outstanding only",
     "empty": "No folios yet.",
-    "openWorkspace": "Open"
+    "openWorkspace": "Open",
+    "coveredByDeposit": "{amount} covered by the deposit",
+    "sortBy": "Sort by",
+    "sorts": {
+      "-id": "Reservation #: newest first",
+      "id": "Reservation #: oldest first",
+      "-check_in": "Check-in: newest first",
+      "check_in": "Check-in: oldest first",
+      "-check_out": "Check-out: newest first",
+      "check_out": "Check-out: oldest first"
+    }
   },
   "checkoutPage": {
     "subtitle": "Perform checkout and final settlement for a reservation.",
