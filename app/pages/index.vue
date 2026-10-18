@@ -49,9 +49,25 @@ const hotelsTotal = computed(
 
 const canSeeReservations = can("reservations.view");
 
-const reservations = useResource(() => reservationsService.list({ page: 1 }), {
-  immediate: canSeeReservations,
-});
+// Follows the header hotel picker: a concrete hotel narrows the list, "all
+// hotels" leaves hotel_id unset so the server returns the caller's full scope.
+const reservations = useResource(
+  () =>
+    reservationsService.list({
+      page: 1,
+      hotel_id: hotelCtx.currentHotelId ?? undefined,
+    }),
+  {
+    immediate: canSeeReservations,
+  },
+);
+
+watch(
+  () => hotelCtx.currentScope,
+  () => {
+    if (canSeeReservations) reservations.reload();
+  },
+);
 
 const reservationRows = computed(() => reservations.data.value?.data ?? []);
 
