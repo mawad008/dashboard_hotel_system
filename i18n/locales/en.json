@@ -706,6 +706,15 @@
     "unit": "Unit",
     "total": "Total",
     "source": "Source",
+    "folioSources": {
+      "accommodation": "Accommodation",
+      "stay_extension": "Stay extension",
+      "service_order": "Service order",
+      "service_fee": "Service fee",
+      "tax": "Tax",
+      "loyalty_redemption": "Loyalty redemption"
+    },
+    "loyaltyRedemptionLine": "Loyalty redemption ({points} points)",
     "addServiceOrder": "Add service order",
     "addServiceOrderTitle": "New service order",
     "service": "Service",
@@ -743,6 +752,11 @@
     "points": "Points",
     "when": "When",
     "channel": "Channel",
+    "channels": {
+      "in_app": "In-app",
+      "email": "Email",
+      "sms": "SMS"
+    },
     "delivery": "Delivery",
     "markRead": "Mark read",
     "markAllRead": "Mark all read",

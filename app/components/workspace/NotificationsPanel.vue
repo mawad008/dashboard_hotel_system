@@ -58,7 +58,7 @@ async function markAll() {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
             <span class="text-2sm font-medium text-foreground">{{ n.subject }}</span>
-            <StatusBadge :label="n.channel" tone="neutral" />
+            <StatusBadge :label="t(`workspace.channels.${n.channel}`)" tone="neutral" />
             <StatusBadge :label="t(`status.${n.status}`)" :tone="NOTIFICATION_STATUS_TONE[n.status]" />
           </div>
           <p class="mt-0.5 text-2sm text-muted-foreground">

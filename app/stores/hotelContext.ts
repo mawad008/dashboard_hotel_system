@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Hotel } from '~/types/api'
+import { hotelsService } from '~/services'
 
 // The special "all hotels" scope. Only meaningful for a Group Owner AND only
 // where a backend endpoint actually serves group-wide data. Hotel-scoped
@@ -10,6 +11,9 @@ export type HotelScope = number | typeof ALL_HOTELS
 
 interface HotelContextState {
   currentScope: HotelScope | null
+  // A Group Owner has no user_hotel_access rows, so their session `hotels`
+  // can be empty; the picker falls back to GET /hotels (their full scope).
+  ownerHotels: Hotel[]
 }
 
 // Central hotel context. This is a QUERY convenience, never authorisation:
@@ -18,12 +22,15 @@ interface HotelContextState {
 export const useHotelContextStore = defineStore('hotelContext', {
   state: (): HotelContextState => ({
     currentScope: null,
+    ownerHotels: [],
   }),
 
   getters: {
     // Hotels the signed-in user may pick between.
-    availableHotels(): Hotel[] {
-      return useAuthStore().assignedHotels
+    availableHotels(s): Hotel[] {
+      const auth = useAuthStore()
+      if (auth.isGroupOwner && s.ownerHotels.length > 0) return s.ownerHotels
+      return auth.assignedHotels
     },
 
     canSelectAllHotels(): boolean {
@@ -51,13 +58,14 @@ export const useHotelContextStore = defineStore('hotelContext', {
     // of my hotels".
     init() {
       const auth = useAuthStore()
+      void this.loadOwnerHotels()
       const stored = this.readStored()
 
       if (stored === ALL_HOTELS && auth.isGroupOwner) {
         this.currentScope = ALL_HOTELS
         return
       }
-      if (typeof stored === 'number' && auth.assignedHotels.some(h => h.id === stored)) {
+      if (typeof stored === 'number' && (auth.isGroupOwner || auth.assignedHotels.some(h => h.id === stored))) {
         this.currentScope = stored
         return
       }
@@ -69,6 +77,23 @@ export const useHotelContextStore = defineStore('hotelContext', {
         this.currentScope = null
       }
       this.writeStored(this.currentScope)
+    },
+
+    // Group Owner only: load every hotel in scope for the picker. Paged at
+    // the server's max page size until exhausted.
+    async loadOwnerHotels() {
+      if (!useAuthStore().isGroupOwner) return
+      try {
+        const hotels: Hotel[] = []
+        for (let page = 1; ; page++) {
+          const res = await hotelsService.list({ page, per_page: 100 })
+          hotels.push(...res.data)
+          if (page >= (res.meta.last_page ?? 1)) break
+        }
+        this.ownerHotels = hotels
+      } catch {
+        // picker keeps the session hotels; "all hotels" still works
+      }
     },
 
     setScope(scope: HotelScope) {
@@ -85,6 +110,7 @@ export const useHotelContextStore = defineStore('hotelContext', {
 
     reset() {
       this.currentScope = null
+      this.ownerHotels = []
       if (import.meta.client) {
         try {
           localStorage.removeItem('hm_hotel_scope')

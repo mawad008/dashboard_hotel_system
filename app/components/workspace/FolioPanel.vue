@@ -2,11 +2,30 @@
 import { folioService } from '~/services'
 import { money } from '~/utils/format'
 import { PAYMENT_STATUS_TONE } from '~/utils/statusMeta'
+import type { FolioCharge } from '~/types/api'
 
 const props = defineProps<{ reservationId: number }>()
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const folio = useResource(() => folioService.get(props.reservationId))
+
+// The backend writes system lines (accommodation, fee, tax, loyalty…) with an
+// English description; label them by source in the UI language. Service
+// orders keep their own (service) name.
+const SYSTEM_SOURCES = ['accommodation', 'stay_extension', 'service_fee', 'tax', 'loyalty_redemption']
+
+function sourceLabel(c: FolioCharge): string {
+  const key = `workspace.folioSources.${c.source_type}`
+  return te(key) ? t(key) : c.source_type
+}
+
+function chargeDescription(c: FolioCharge): string {
+  if (c.source_type === 'loyalty_redemption') {
+    const points = c.description.match(/\((\d+)/)?.[1]
+    if (points) return t('workspace.loyaltyRedemptionLine', { points })
+  }
+  return SYSTEM_SOURCES.includes(c.source_type) ? sourceLabel(c) : c.description
+}
 </script>
 
 <template>
@@ -60,9 +79,9 @@ const folio = useResource(() => folioService.get(props.reservationId))
           </thead>
           <tbody>
             <tr v-for="c in folio.data.value.charges" :key="c.id">
-              <td>{{ c.description }}</td>
+              <td>{{ chargeDescription(c) }}</td>
               <td class="text-muted-foreground">
-                {{ c.source_type }}
+                {{ sourceLabel(c) }}
               </td>
               <td class="text-end">
                 {{ c.quantity }}

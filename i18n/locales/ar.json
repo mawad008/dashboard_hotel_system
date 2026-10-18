@@ -674,6 +674,15 @@
     "unit": "السعر",
     "total": "الإجمالي",
     "source": "المصدر",
+    "folioSources": {
+      "accommodation": "الإقامة",
+      "stay_extension": "تمديد الإقامة",
+      "service_order": "طلب خدمة",
+      "service_fee": "رسوم الخدمة",
+      "tax": "الضريبة",
+      "loyalty_redemption": "خصم نقاط الولاء"
+    },
+    "loyaltyRedemptionLine": "خصم نقاط الولاء ({points} نقطة)",
     "addServiceOrder": "إضافة طلب خدمة",
     "addServiceOrderTitle": "طلب خدمة جديد",
     "service": "الخدمة",
@@ -711,6 +720,11 @@
     "points": "النقاط",
     "when": "التاريخ",
     "channel": "القناة",
+    "channels": {
+      "in_app": "داخل التطبيق",
+      "email": "البريد الإلكتروني",
+      "sms": "رسالة نصية"
+    },
     "delivery": "التسليم",
     "markRead": "وضع كمقروء",
     "markAllRead": "تعيين الكل كمقروء",
