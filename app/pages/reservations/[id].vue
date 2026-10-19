@@ -8,7 +8,7 @@ import { ApiError } from '~/utils/apiError'
 
 definePageMeta({ permission: 'reservations.view' })
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const app = useAppStore()
@@ -34,8 +34,13 @@ watch(() => reservation.data.value, (r) => {
   if (r && can('inventory.view')) related.reload()
 })
 
+// Cancel keeps `reservations.manage`; every other move is a management
+// override that runs the step's real flow, so it needs its own permission.
 const nextStates = computed<ReservationStatus[]>(() =>
-  reservation.data.value ? allowedTransitions(reservation.data.value.status) : [],
+  reservation.data.value
+    ? allowedTransitions(reservation.data.value.status)
+        .filter(s => s === 'cancelled' ? can('reservations.manage') : can('reservations.override'))
+    : [],
 )
 
 function hotelName(hotelId: number) {
@@ -103,22 +108,53 @@ const lifecycle = computed(() =>
 )
 
 // --- transition ------------------------------------------------------
+// A move runs the step's real flow server-side, so the folio, payment,
+// identity, key and invoice panels all change with it: they are re-mounted
+// (panelsKey) after every attempt, successful or not.
 const confirmTarget = ref<ReservationStatus | null>(null)
+const transitionReason = ref('')
+const transitionKey = ref('')
 const transitioning = ref(false)
+const panelsKey = ref(0)
+
+// Only these steps take a note: the cancellation reason, and why identity
+// was approved without documents.
+const takesReason = computed(() => confirmTarget.value === 'cancelled' || confirmTarget.value === 'verified')
+
+function askTransition(target: ReservationStatus) {
+  confirmTarget.value = target
+  transitionReason.value = ''
+  // One key per confirm dialog: a double click replays the same flow.
+  transitionKey.value = crypto.randomUUID()
+}
+
+function incompleteReason(e: ApiError): string | null {
+  const reason = (e.errors as { reason?: unknown } | null)?.reason
+  if (typeof reason !== 'string') return null
+  const key = `reservations.stepIncomplete.${reason}`
+  return te(key) ? t(key) : reason
+}
 
 async function doTransition() {
   if (!confirmTarget.value || transitioning.value) return
   transitioning.value = true
   try {
-    const updated = await reservationsService.transition(id, confirmTarget.value)
+    const updated = await reservationsService.transition(id, confirmTarget.value, {
+      reason: takesReason.value ? transitionReason.value.trim() : undefined,
+      idempotencyKey: transitionKey.value,
+    })
     reservation.data.value = updated
     app.pushToast('success', t('reservations.transitionSuccess', { status: t(`status.${updated.status}`) }))
-    confirmTarget.value = null
   } catch (e) {
-    app.pushToast('error', e instanceof ApiError ? e.message : t('errors.genericBody'))
-    confirmTarget.value = null
+    const detail = e instanceof ApiError ? incompleteReason(e) : null
+    app.pushToast('error', e instanceof ApiError ? [e.message, detail].filter(Boolean).join(' — ') : t('errors.genericBody'))
+    // The flow may have moved the reservation part-way (e.g. checkout
+    // opened, or a declined deposit cancelled it): show where it is now.
+    reservation.reload()
   } finally {
+    confirmTarget.value = null
     transitioning.value = false
+    panelsKey.value++
   }
 }
 
@@ -212,6 +248,8 @@ async function doExtend() {
         <div class="space-y-6 lg:col-span-2">
           <AppTabs v-model="activeTab" :tabs="tabs" />
 
+          <div :key="panelsKey" class="contents">
+
           <template v-if="activeTab === 'overview'">
             <DataCard :title="t('reservations.detailTitle', { id: reservation.data.value.id })">
               <FactGrid :facts="facts" />
@@ -270,6 +308,7 @@ async function doExtend() {
             v-else-if="activeTab === 'notifications'"
             :reservation-id="id"
           />
+          </div>
         </div>
 
         <div class="space-y-4">
@@ -278,28 +317,21 @@ async function doExtend() {
           </DataCard>
 
           <DataCard :title="t('reservations.timeline')">
-            <PermissionGate permission="reservations.manage">
-              <template #fallback>
-                <p class="text-sm text-muted-foreground">
-                  {{ t('reservations.noTransitions') }}
-                </p>
-              </template>
-              <div v-if="nextStates.length" class="space-y-2">
-                <button
-                  v-for="s in nextStates"
-                  :key="s"
-                  type="button"
-                  class="btn w-full"
-                  :class="s === 'cancelled' ? 'btn-destructive' : 'btn-primary'"
-                  @click="confirmTarget = s"
-                >
-                  {{ t('reservations.advanceTo', { status: t(`status.${s}`) }) }}
-                </button>
-              </div>
-              <p v-else class="text-sm text-muted-foreground">
-                {{ t('reservations.noTransitions') }}
-              </p>
-            </PermissionGate>
+            <div v-if="nextStates.length" class="space-y-2">
+              <button
+                v-for="s in nextStates"
+                :key="s"
+                type="button"
+                class="btn w-full"
+                :class="s === 'cancelled' ? 'btn-destructive' : 'btn-primary'"
+                @click="askTransition(s)"
+              >
+                {{ t('reservations.advanceTo', { status: t(`status.${s}`) }) }}
+              </button>
+            </div>
+            <p v-else class="text-sm text-muted-foreground">
+              {{ t('reservations.noTransitions') }}
+            </p>
             <p class="mt-3 text-2xs text-muted-foreground">
               {{ t('reservations.manageNote') }}
             </p>
@@ -379,7 +411,14 @@ async function doExtend() {
         :busy="transitioning"
         @update:open="v => !v && (confirmTarget = null)"
         @confirm="doTransition"
-      />
+      >
+        <p v-if="confirmTarget" class="mt-3 rounded-md bg-secondary px-3 py-2 text-2sm text-foreground">
+          {{ t(`reservations.moveEffects.${confirmTarget}`) }}
+        </p>
+        <FormField v-if="takesReason" :label="t('reservations.moveReason')" class="mt-3">
+          <textarea v-model="transitionReason" class="input min-h-20" maxlength="500" />
+        </FormField>
+      </ConfirmDialog>
     </template>
   </div>
 </template>

@@ -408,10 +408,14 @@ export const reservationsService = {
       method: 'POST',
       body: { room_id: roomId },
     }),
-  transition: (id: number, targetStatus: ReservationStatus) =>
+  // Every move except cancel runs the step's real flow server-side
+  // (deposit hold, identity override, check-in, checkout). The key makes a
+  // double-submitted confirm replay that flow instead of repeating it.
+  transition: (id: number, targetStatus: ReservationStatus, opts: { reason?: string, idempotencyKey?: string } = {}) =>
     api()<Reservation>(`/reservations/${id}/transition`, {
       method: 'POST',
-      body: { target_status: targetStatus },
+      body: { target_status: targetStatus, reason: opts.reason || undefined },
+      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
     }),
   // Extend Stay — only while checked_in/in_stay. The backend re-checks
   // availability and prices the addition from room_types.base_price; the

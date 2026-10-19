@@ -19,6 +19,7 @@ const { t } = useI18n()
     <p class="text-sm text-muted-foreground">
       {{ props.message }}
     </p>
+    <slot />
     <template #footer>
       <button type="button" class="btn btn-secondary" :disabled="props.busy" @click="open = false">
         {{ t('common.cancel') }}

@@ -610,7 +610,7 @@
     "advanceTo": "Advance to {status}",
     "transitionSuccess": "Reservation moved to {status}.",
     "noTransitions": "No further transitions are available from this status.",
-    "manageNote": "The backend re-validates every transition against the reservation state machine. Frontend only offers transitions valid from the current status.",
+    "manageNote": "Every move except cancel runs that step's real flow, as if the guest were using the app: deposit, identity, digital key, folio, settlement and invoice. If the step does not complete, the reservation stays where the flow left it.",
     "viewGuestProfile": "View guest profile (#{id})",
     "filterStatus": "Status",
     "filterHotel": "Hotel",
@@ -636,7 +636,27 @@
     "extendCta": "Extend",
     "extendNote": "Availability and the price are re-checked and calculated by the server from the room type's nightly rate. The amount is added to the folio and settled at checkout.",
     "extendSuccess": "Stay extended to {date} (+{amount}).",
-    "extendUnavailable": "Extend stay is only available while the guest is checked in."
+    "extendUnavailable": "Extend stay is only available while the guest is checked in.",
+    "moveReason": "Reason (optional)",
+    "moveEffects": {
+      "deposit_held": "The deposit is held through the payment gateway using the app's rule (the hotel's deposit percentage of the stay price). A declined hold cancels the booking, as in the app.",
+      "verified": "The guest's identity is approved by a management override without documents, recorded under your name in the audit log.",
+      "checked_in": "Checks the guest in from reception and issues the digital key, then moves the stay to in-stay. Needs an assigned room and a confirmed deposit.",
+      "in_stay": "Moves the reservation to in-stay.",
+      "checkout_in_progress": "Runs checkout: posts accommodation, fee and tax to the folio, settles through the deposit and issues the invoice.",
+      "checked_out": "Completes checkout: final settlement and invoice.",
+      "invoiced": "Completes checkout and issues the invoice.",
+      "checkout_blocked": "Blocks checkout by management decision.",
+      "cancelled": "Cancels under the cancellation policy and releases the deposit when the guest is entitled to a refund."
+    },
+    "stepIncomplete": {
+      "payment_hold_failed": "The deposit hold was declined.",
+      "payment_hold_requested": "The deposit hold is still processing at the gateway.",
+      "access_failed": "The digital key could not be issued.",
+      "access_issue_requested": "The digital key is still being issued.",
+      "checkout_awaiting_settlement": "The final settlement is still processing.",
+      "checkout_settlement_failed": "The final settlement failed."
+    }
   },
   "workspace": {
     "decisionResult": {
@@ -1341,7 +1361,9 @@
       "webhook_unmatched": "unmatched webhook",
       "image_viewed": "document image viewed",
       "adjusted": "adjusted",
-      "departed_early": "departed early"
+      "departed_early": "departed early",
+      "staff_advanced": "moved by management",
+      "staff_override_approved": "approved by management override"
     },
     "models": {
       "Checkout": "Checkout",
